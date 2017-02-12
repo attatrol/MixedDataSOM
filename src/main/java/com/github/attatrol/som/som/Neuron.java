@@ -81,7 +81,7 @@ public class Neuron {
                 else if (incomingValuePower > weightsPower[i]) {
                     weightsPower[i] = incomingValuePower;
                     weights[i] = newWeights[i];
-                    System.out.println("Change!");
+                    //System.out.println("Change!");
                 }
                 break;
             default:

@@ -52,6 +52,16 @@ class AvgErrorChart extends LineChart<Number, Number> {
     }
 
     /**
+     * Use this when you have to preserve data from previous chart
+     * @param epochNumber number of epochs
+     * @param oldChart chart which data should be shown
+     */
+    public AvgErrorChart(int epochNumber, AvgErrorChart oldChart) {
+        this(epochNumber);
+        getData().addAll(oldChart.getData());
+    }
+
+    /**
      * @return epochs per one tick of X axis
      */
     public int getEpochStep() {

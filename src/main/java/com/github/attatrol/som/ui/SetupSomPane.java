@@ -19,6 +19,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -272,7 +273,8 @@ public class SetupSomPane extends BorderPane {
             // make sure the list above are Region instances
             ((Region) child).setMaxWidth(Double.MAX_VALUE);
         }
-        return buttonPane;
+        final ScrollPane scrollPane = new ScrollPane(buttonPane);
+        return scrollPane;
     }
 
     /**
@@ -385,7 +387,11 @@ public class SetupSomPane extends BorderPane {
                 if (form.avgErrorChart != null 
                         && form.avgErrorChart.getEpochNumber()
                         < form.somData.getNumberOfEpochs()) {
+                    final AvgErrorChart biggerChart = new AvgErrorChart(
+                            form.somData.getNumberOfEpochs(), form.avgErrorChart);
                     removeChart(form);
+                    form.avgErrorChart = biggerChart;
+                    form.contentPane.add(form.avgErrorChart, 0, 2, 4, 1);
                 }
                 form.somData.registerLastCreatedSomParameters();
                 disableControls(form, false, false, false, false, true, true, false, true);

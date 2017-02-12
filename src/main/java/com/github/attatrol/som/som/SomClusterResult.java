@@ -64,10 +64,11 @@ public class SomClusterResult {
         List<Record<Object[]>> records = new ArrayList<>(numberOfRecords);
         int counter = 0;
         dataSource.reset();
-        while (dataSource.hasNext() && counter++ < numberOfRecords ) {
+        while (dataSource.hasNext() && counter < numberOfRecords ) {
             final Record<Object[]> record = dataSource.next();
             if (clusterIndex == getCluster(record)) {
                 records.add(record);
+                counter++;
             }
         }
         return records;
