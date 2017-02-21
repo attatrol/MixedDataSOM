@@ -37,11 +37,11 @@ public class PositiveDoubleParsingTextField extends PositiveDoubleTextField {
                     Boolean oldValue, Boolean newValue) {
                 if (!newValue && oldValue) {
                     try {
-                        final double newDouble = Double.parseDouble(getText());
+                        final double newDouble = parse();
                         previousValue = value.get();
                         value.set(newDouble);
                     }
-                    catch (NumberFormatException | NullPointerException ex) {
+                    catch (Exception ex) {
                         setText(Double.toString(previousValue));
                     }
                 }
@@ -65,5 +65,15 @@ public class PositiveDoubleParsingTextField extends PositiveDoubleTextField {
         final String text = Double.toString(newValue);
         setText(text);
         previousValue = newValue; 
+    }
+
+    /**
+     * Parses text and checks parsed value validity.
+     * @return text parsed value
+     * @throws Exception if parsed value is invalid or unacceptable
+     */
+    protected double parse() throws Exception {
+        final String text = getText();
+        return Double.parseDouble(text);
     }
 }

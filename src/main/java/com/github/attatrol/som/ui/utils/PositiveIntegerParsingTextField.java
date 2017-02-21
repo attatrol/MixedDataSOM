@@ -37,11 +37,11 @@ public class PositiveIntegerParsingTextField extends PositiveNumericTextField {
                     Boolean oldValue, Boolean newValue) {
                 if (!newValue && oldValue) {
                     try {
-                        final int newInt = Integer.parseInt(getText());
+                        final int newInt = parse();
                         oldText = value.get();
                         value.set(newInt);
                     }
-                    catch (NumberFormatException | NullPointerException ex) {
+                    catch (Exception ex) {
                         setText(Integer.toString(oldText));
                     }
                 }
@@ -67,5 +67,15 @@ public class PositiveIntegerParsingTextField extends PositiveNumericTextField {
         final String text = Integer.toString(newValue);
         setText(text);
         oldText = newValue; 
+    }
+
+    /**
+     * Parses text and checks parsed value validity.
+     * @return text parsed value
+     * @throws Exception if parsed value is invalid or unacceptable
+     */
+    protected int parse() throws Exception {
+        final String text = getText();
+        return Integer.parseInt(text);
     }
 }

@@ -13,9 +13,10 @@ import com.github.attatrol.preprocessing.datasource.Record;
 import com.github.attatrol.preprocessing.ui.TokenDataSourceAndMisc;
 import com.github.attatrol.preprocessing.ui.TokenDataSourceTableView;
 import com.github.attatrol.preprocessing.ui.misc.UiUtils;
-import com.github.attatrol.som.som.Neuron;
 import com.github.attatrol.som.som.Som;
 import com.github.attatrol.som.som.SomClusterResult;
+import com.github.attatrol.som.som.neuron.AbstractNeuron;
+import com.github.attatrol.som.som.neuron.FuzzyNeuron;
 import com.github.attatrol.som.som.topology.Point;
 import com.github.attatrol.som.ui.i18n.SomI18nProvider;
 import com.github.attatrol.som.ui.utils.RamTokenDataSource;
@@ -73,7 +74,7 @@ public class ResultPane extends GridPane {
     /**
      * Cache for table views.
      */
-    private final Map<Neuron, TokenDataSourceTableView> tableViews = new WeakHashMap<>();
+    private final Map<FuzzyNeuron, TokenDataSourceTableView> tableViews = new WeakHashMap<>();
 
     /*
      * UI controls.
@@ -126,7 +127,7 @@ public class ResultPane extends GridPane {
         super();
         this.tdsm = tdsm;
         this.clusterResult = clusterResult;
-        final List<Neuron> neurons = som.getNeurons();
+        final List<AbstractNeuron> neurons = som.getNeurons();
         final List<SomTile> tiles = new ArrayList<>();
         neurons.forEach(neuron -> tiles.add(new SomTile(neuron)));
         paintTiles(tiles);
@@ -236,7 +237,7 @@ public class ResultPane extends GridPane {
      * Sets new visible table view.
      * @param neuron neuron which content is to be shown
      */
-    private void setTableView(Neuron neuron) {
+    private void setTableView(AbstractNeuron neuron) {
         TokenDataSourceTableView newTableView = tableViews.get(neuron);
         try {
             if (newTableView == null) {
@@ -262,7 +263,7 @@ public class ResultPane extends GridPane {
      * @return table with records associated with the neuron
      * @throws IOException on data source i/o error
      */
-    private TokenDataSourceTableView produceNewTableView(Neuron neuron) throws IOException {
+    private TokenDataSourceTableView produceNewTableView(AbstractNeuron neuron) throws IOException {
         final AbstractTokenDataSource<?> originalDataSource = tdsm.getTokenDataSource();
         final List<Record<Object[]>> records = clusterResult.getClusterRecords(
                 originalDataSource, neuron, SHOWN_NUMBER_OF_NEURONS);
@@ -286,11 +287,11 @@ public class ResultPane extends GridPane {
         private double colorIndex;
 
         /**
-         * Neuron associated with this tile.
+         * FuzzyNeuron associated with this tile.
          */
-        private final Neuron neuron;
+        private final AbstractNeuron neuron;
 
-        SomTile(Neuron neuron) {
+        SomTile(AbstractNeuron neuron) {
             this.neuron = neuron;
             this.setStrokeWidth(2.);
             setStroke(Color.WHITE);

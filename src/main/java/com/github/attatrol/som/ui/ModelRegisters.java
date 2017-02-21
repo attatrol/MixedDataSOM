@@ -14,6 +14,9 @@ import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunctionF
 import com.github.attatrol.som.som.initializers.RandomRecordsInitializer;
 import com.github.attatrol.som.som.initializers.RandomWeightsInitializer;
 import com.github.attatrol.som.som.initializers.SomInitializer;
+import com.github.attatrol.som.som.neuron.FrequencyControlledFuzzyNeuron;
+import com.github.attatrol.som.som.neuron.FuzzyNeuron;
+import com.github.attatrol.som.som.neuron.FuzzyNeuronFactory;
 import com.github.attatrol.som.som.topology.RectangleTopology;
 import com.github.attatrol.som.som.topology.RectangleTopologyFactory;
 import com.github.attatrol.som.som.topology.ToroidalTopology;
@@ -57,6 +60,14 @@ final class ModelRegisters {
         set.add(new RandomWeightsInitializer());
         set.add(new RandomRecordsInitializer());
         SOM_INITIALIZERS = Collections.unmodifiableList(set);
+    }
+
+    public static final List<FuzzyNeuronFactory<?>> FUZZY_NEURON_FACTORIES;
+    static {
+        List<FuzzyNeuronFactory<?>> set = new ArrayList<>();
+        set.add(new FuzzyNeuron.Factory());
+        set.add(new FrequencyControlledFuzzyNeuron.Factory());
+        FUZZY_NEURON_FACTORIES = Collections.unmodifiableList(set);
     }
 
     private ModelRegisters(){}

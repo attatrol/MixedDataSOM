@@ -288,8 +288,8 @@ enum SomMode {
                         && !somData.isLearnSomAbortFlag()) {
                     final double avgError = som.learnEpoch(epochCounter);
                     chartFiller.registerEpoch(avgError);
-                    //System.out.println(String.format("Epoch: %d, Error: %f",
-                            //epochCounter, avgError));
+                    System.out.println(String.format("Epoch: %d, Error: %f",
+                            epochCounter, avgError));
                     //System.out.println(som);
                 }
                 chartFiller.dumpResidualToChart();

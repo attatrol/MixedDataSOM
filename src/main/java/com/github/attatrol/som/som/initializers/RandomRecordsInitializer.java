@@ -10,10 +10,11 @@ import com.github.attatrol.preprocessing.datasource.AbstractTokenDataSource;
 import com.github.attatrol.preprocessing.datasource.parsing.TokenType;
 import com.github.attatrol.preprocessing.distance.DistanceFunction;
 import com.github.attatrol.preprocessing.ui.TokenDataSourceAndMisc;
-import com.github.attatrol.som.som.Neuron;
 import com.github.attatrol.som.som.Som;
 import com.github.attatrol.som.som.functions.learning.LearningFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunction;
+import com.github.attatrol.som.som.neuron.AbstractNeuron;
+import com.github.attatrol.som.som.neuron.FuzzyNeuron;
 import com.github.attatrol.som.som.topology.Point;
 import com.github.attatrol.som.som.topology.SomTopology;
 
@@ -38,9 +39,9 @@ public class RandomRecordsInitializer implements SomInitializer {
         final TokenType[] tokenTypes = tdsm.getTokenTypes();
         final Map<Object, Double>[] sampleFrequencies = SampleFrequencyCalculator
                 .getSampleFrequencies(dataSource, tokenTypes);
-        List<Neuron> neurons = new ArrayList<>();
+        List<AbstractNeuron> neurons = new ArrayList<>();
         for (Point position : neuronPositions) {
-            neurons.add(new Neuron(getRandomData(dataSource,
+            neurons.add(new FuzzyNeuron(getRandomData(dataSource,
                     numberOfRecords), position, tokenTypes, sampleFrequencies));
         }
         return new Som(neurons, topology, dataSource, distanceFunction,

@@ -11,6 +11,8 @@ import com.github.attatrol.preprocessing.datasource.Record;
 import com.github.attatrol.preprocessing.distance.DistanceFunction;
 import com.github.attatrol.som.som.functions.learning.LearningFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunction;
+import com.github.attatrol.som.som.neuron.AbstractNeuron;
+import com.github.attatrol.som.som.neuron.FuzzyNeuron;
 import com.github.attatrol.som.som.topology.Point;
 import com.github.attatrol.som.som.topology.SomTopology;
 
@@ -23,7 +25,7 @@ public class Som {
 
     private final SomTopology topology;
 
-    private final List<Neuron> neurons;
+    private final List<AbstractNeuron> neurons;
 
     private final AbstractTokenDataSource<?> dataSource;
 
@@ -33,7 +35,7 @@ public class Som {
 
     private LearningFunction learningFunction;
 
-    public Som(List<Neuron> neurons, SomTopology topology,
+    public Som(List<AbstractNeuron> neurons, SomTopology topology,
             AbstractTokenDataSource<?> dataSource,
             DistanceFunction distanceFunction,
             NeighborhoodFunction neighborhoodFunction,
@@ -70,12 +72,12 @@ public class Som {
      * @param record input record
      * @return BMU
      */
-    public Neuron getBmu(Record<Object[]> record) {
+    public AbstractNeuron getBmu(Record<Object[]> record) {
         final Object[] data = record.getData();
-        Neuron bmu = neurons.get(0);
+        AbstractNeuron bmu = neurons.get(0);
         double bmuDistance = distanceFunction.calculate(neurons.get(0).getWeights(), data);
         for (int i = 1; i < neurons.size(); i++) {
-            final Neuron neuron = neurons.get(i);
+            final AbstractNeuron neuron = neurons.get(i);
             final double distance = distanceFunction.calculate(neuron.getWeights(), data);
             if (distance < bmuDistance) {
                 bmuDistance = distance;
@@ -88,7 +90,7 @@ public class Som {
     /**
      * @return shallow copy of neuron list.
      */
-    public List<Neuron> getNeurons() {
+    public List<AbstractNeuron> getNeurons() {
         return new ArrayList<>(neurons);
     }
 
@@ -102,8 +104,8 @@ public class Som {
         final double learningFunctionValue = learningFunction.calculate(epochNumber);
         final Map<Double, Double> decrementFactorMap =
                 new HashMap<>();
-        for (Neuron neuron1 : neurons) {
-            for (Neuron neuron2 : neurons) {
+        for (AbstractNeuron neuron1 : neurons) {
+            for (AbstractNeuron neuron2 : neurons) {
                 final double distance = topology.getDistance(neuron1.getPosition(),
                         neuron2.getPosition());
                 if (!decrementFactorMap.containsKey(distance)) {
@@ -125,10 +127,10 @@ public class Som {
      */
     private double learn(Record<Object[]> record, Map<Double, Double> speedFactorMap) {
         final Object[] data = record.getData();
-        Neuron bmu = neurons.get(0);
+        AbstractNeuron bmu = neurons.get(0);
         double bmuDistance = distanceFunction.calculate(neurons.get(0).getWeights(), data);
         for (int i = 1; i < neurons.size(); i++) {
-            final Neuron neuron = neurons.get(i);
+            final AbstractNeuron neuron = neurons.get(i);
             final double distance = distanceFunction.calculate(neuron.getWeights(), data);
             if (distance < bmuDistance) {
                 bmuDistance = distance;
@@ -136,7 +138,7 @@ public class Som {
             }
         }
         final Point bmuPosition = bmu.getPosition();
-        for (Neuron neuron : neurons) {
+        for (AbstractNeuron neuron : neurons) {
             final double distance = topology.getDistance(bmuPosition,
                     neuron.getPosition());
             neuron.changeWeights(data, speedFactorMap.get(distance), bmu == neuron);
@@ -148,7 +150,7 @@ public class Som {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("SOM =");
-        for (Neuron neuron : neurons) {
+        for (AbstractNeuron neuron : neurons) {
             sb.append('\n').append(neuron);
         }
         return sb.append("]").toString();

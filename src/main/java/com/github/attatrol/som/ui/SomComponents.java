@@ -9,6 +9,7 @@ import com.github.attatrol.som.som.Som;
 import com.github.attatrol.som.som.functions.learning.LearningFunctionFactory;
 import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunctionFactory;
 import com.github.attatrol.som.som.initializers.SomInitializer;
+import com.github.attatrol.som.som.neuron.FuzzyNeuronFactory;
 import com.github.attatrol.som.som.topology.RectangleTopologyFactory;
 
 /**
@@ -30,6 +31,8 @@ class SomComponents {
 
     private RectangleTopologyFactory<?> topologyFactory;
 
+    private FuzzyNeuronFactory<?> fuzzyNeuronFactory;
+
     private SomInitializer somInitializer;
 
     private Som som;
@@ -41,6 +44,8 @@ class SomComponents {
     private int rectangleWidth;
 
     private int rectangleHeight;
+
+    private double winnerLoweringFactor;
 
     private SomMode chosenSomMode;
 
@@ -100,6 +105,14 @@ class SomComponents {
         this.topologyFactory = topologyFactory;
     }
 
+    public FuzzyNeuronFactory<?> getFuzzyNeuronFactory() {
+        return fuzzyNeuronFactory;
+    }
+
+    public void setFuzzyNeuronFactory(FuzzyNeuronFactory<?> fuzzyNeuronFactory) {
+        this.fuzzyNeuronFactory = fuzzyNeuronFactory;
+    }
+
     public SomInitializer getSomInitializer() {
         return somInitializer;
     }
@@ -146,6 +159,14 @@ class SomComponents {
 
     public void setRectangleHeight(int rectangleHeight) {
         this.rectangleHeight = rectangleHeight;
+    }
+
+    public double getWinnerLoweringFactor() {
+        return winnerLoweringFactor;
+    }
+
+    public void setWinnerLoweringFactor(double winnerLoweringFactor) {
+        this.winnerLoweringFactor = winnerLoweringFactor;
     }
 
     public boolean isLearnSomAbortFlag() {
@@ -204,6 +225,7 @@ class SomComponents {
         neighborhoodFunctionFactory = null;
         topologyFactory = null;
         somInitializer = null;
+        fuzzyNeuronFactory = null;
         som = null;
         // we have to setup this as control check box may not fire
         // change event

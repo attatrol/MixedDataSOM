@@ -1,55 +1,27 @@
-package com.github.attatrol.som.som;
+package com.github.attatrol.som.som.neuron;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.github.attatrol.preprocessing.datasource.parsing.TokenType;
 import com.github.attatrol.som.som.topology.Point;
 
-/**
- * Neuron must work with numeric data exactly like
- * original Kohonen's SOM neuron should, but with mixed or categorical data
- * it will work like neurons described
- * @author atta_troll
- *
- */
-public class Neuron {
+public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
 
-    private Object[] weights;
+    private static final double MINIMAL_FREQUENCY_ADJUSTMENT_RATIO = 0.1;
 
-    private double[] weightsPower;
+    protected final double[] fuzzyWeightSum;
 
-    public Map<Object, Double>[] weightFuzzySets;
-
-    public final Map<Object, Double>[] sampleFrequencies;
-
-    private final Point position;
-
-    private final TokenType[] tokenTypes;
-
-    @SuppressWarnings("unchecked")
-    public Neuron(Object[] initialWeights, Point position, TokenType[] tokenTypes,
-            Map<Object, Double>[] sampleFrequencies) {
-        weights = initialWeights;
-        this.position = position;
-        this.tokenTypes = tokenTypes;
-        this.sampleFrequencies = sampleFrequencies;
-        weightFuzzySets = new Map[tokenTypes.length];
-        weightsPower = new double[tokenTypes.length];
+    public FrequencyControlledFuzzyNeuron(Object[] initialWeights, Point position,
+            TokenType[] tokenTypes, Map<Object, Double>[] sampleFrequencies) {
+        super(initialWeights, position, tokenTypes, sampleFrequencies);
+        fuzzyWeightSum = new double[tokenTypes.length];
         for (int i = 0; i < tokenTypes.length; i++) {
-            weightFuzzySets[i] = new HashMap<Object, Double>();
+            fuzzyWeightSum[i] = FuzzyNeuron.INITIAL_CATEGORICAL_WEIGHT;
         }
     }
 
-    public Point getPosition() {
-        return position;
-    }
-
-    Object[] getWeights() {
-        return weights;
-    }
-
-    void changeWeights(Object[] newWeights, double diminishingFactor, boolean isBmu) {
+    @Override
+    public void changeWeights(Object[] newWeights, double diminishingFactor, boolean isBmu) {
         for (int i = 0; i < tokenTypes.length; i++) {
             switch (tokenTypes[i]) {
             case FLOAT:
@@ -74,6 +46,7 @@ public class Neuron {
             case CATEGORICAL_STRING:
                 final double incomingValuePower = calculateIncomingTokenPower(
                         newWeights[i], i, diminishingFactor, isBmu);
+                fuzzyWeightSum[i] += incomingValuePower - weightFuzzySets[i].get(newWeights[i]);
                 weightFuzzySets[i].put(newWeights[i], incomingValuePower);
                 if (newWeights[i].equals(weights[i])) {
                     weightsPower[i] = incomingValuePower;
@@ -81,7 +54,7 @@ public class Neuron {
                 else if (incomingValuePower > weightsPower[i]) {
                     weightsPower[i] = incomingValuePower;
                     weights[i] = newWeights[i];
-                    //System.out.println("Change!");
+                    // System.out.println("Change!");
                 }
                 break;
             default:
@@ -91,34 +64,33 @@ public class Neuron {
         }
     }
 
-    private double calculateIncomingTokenPower(Object newWeight, int index, double diminishingFactor,
+    @Override
+    protected double calculateIncomingTokenPower(Object newWeight, int index, double diminishingFactor,
             boolean isBmu) {
         Double value = weightFuzzySets[index].get(newWeight);
         if (value == null) {
             value = 0.;
         }
-        value += sampleFrequencies[index].get(newWeight) * diminishingFactor;
+        value += diminishingFactor * getFequencyAdjustment(newWeight, value, index);
         return value;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Neuron = [");
-        for (Object weight : weights) {
-            sb.append(weight).append(", ");
-        }
-        return sb.append("]").toString();
+    private Double getFequencyAdjustment(Object newWeight, Double value, int index) {
+        final double adjustment = sampleFrequencies[index].get(newWeight) - value / fuzzyWeightSum[index];
+        return Math.max(adjustment, MINIMAL_FREQUENCY_ADJUSTMENT_RATIO);
     }
 
     /**
-     * Neurons are mapped 1-to-1 to their position, so return
-     * position's hash code.<p/>
-     * {@inheritDoc}
-     * 
+     * Factory for a frequency controlled fuzzy neuron.
+     * @author atta_troll
+     *
      */
-    @Override
-    public int hashCode() {
-        return position.hashCode();
+    public static class Factory implements FuzzyNeuronFactory<FrequencyControlledFuzzyNeuron> {
+
+        @Override
+        public FrequencyControlledFuzzyNeuron createNeuron(Object[] initialWeights, Point position,
+                TokenType[] tokenTypes, Map<Object, Double>[] sampleFrequencies) {
+            return new FrequencyControlledFuzzyNeuron(initialWeights, position, tokenTypes, sampleFrequencies);
+        }
     }
 }

@@ -5,12 +5,14 @@ import com.github.attatrol.preprocessing.ui.misc.UiUtils;
 import com.github.attatrol.som.som.functions.learning.LearningFunctionFactory;
 import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunctionFactory;
 import com.github.attatrol.som.som.initializers.SomInitializer;
+import com.github.attatrol.som.som.neuron.FuzzyNeuronFactory;
 import com.github.attatrol.som.som.topology.RectangleTopologyFactory;
 import com.github.attatrol.som.ui.AvgErrorChart.ChartFiller;
 import com.github.attatrol.som.ui.i18n.SomI18nComboBox;
 import com.github.attatrol.som.ui.i18n.SomI18nProvider;
 import com.github.attatrol.som.ui.utils.PositiveDoubleParsingTextField;
 import com.github.attatrol.som.ui.utils.PositiveIntegerParsingTextField;
+import com.github.attatrol.som.ui.utils.ZeroToOneDoubleParsingTetField;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -19,7 +21,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -171,6 +172,16 @@ public class SetupSomPane extends BorderPane {
     }
 
     /**
+     * desired average error level input text field.
+     */
+    private PositiveDoubleParsingTextField winnerLoweringFactorTextField =
+            new ZeroToOneDoubleParsingTetField();
+    {
+        averageErrorTextField.getValueProperty().addListener(
+                (observable, oldValue,newValue) -> somData.setDesiredAverageError(newValue));
+    }
+
+    /**
      * Check box that switches rules that define trained SOM during learning process.
      */
     private CheckBox learningRegimesSwitchCheckBox = new CheckBox(
@@ -217,6 +228,13 @@ public class SetupSomPane extends BorderPane {
                     somData.setNeighborhoodFunctionFactory(newValue));
     }
 
+    private ComboBox<FuzzyNeuronFactory<?>> neuronFactoryComboBox = new SomI18nComboBox<>();
+    {
+        neuronFactoryComboBox.getItems().addAll(ModelRegisters.FUZZY_NEURON_FACTORIES);
+        neuronFactoryComboBox.valueProperty().addListener(
+                (observable, oldValue,newValue) -> somData.setFuzzyNeuronFactory(newValue));
+    }
+
     private ComboBox<SomInitializer> somInitializerComboBox = new SomI18nComboBox<>();
     {
         somInitializerComboBox.getItems().addAll(ModelRegisters.SOM_INITIALIZERS);
@@ -255,12 +273,16 @@ public class SetupSomPane extends BorderPane {
                 epochNumberTextField,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.avgerror")),
                 averageErrorTextField,
+                new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.winner.lowering")),
+                winnerLoweringFactorTextField,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.choose.topology")),
                 rectangleTopologyFactoryComboBox,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.choose.learning")),
                 learningFunctionFactoryComboBox,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.choose.neighborhood")),
                 neighborhoodFunctionFactoryComboBox,
+                new Label(SomI18nProvider.INSTANCE.getValue("main.label.choose.neuron")),
+                neuronFactoryComboBox,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.choose.initializer")),
                 somInitializerComboBox,
                 createSomButton,
@@ -273,8 +295,7 @@ public class SetupSomPane extends BorderPane {
             // make sure the list above are Region instances
             ((Region) child).setMaxWidth(Double.MAX_VALUE);
         }
-        final ScrollPane scrollPane = new ScrollPane(buttonPane);
-        return scrollPane;
+        return buttonPane;
     }
 
     /**
@@ -387,11 +408,7 @@ public class SetupSomPane extends BorderPane {
                 if (form.avgErrorChart != null 
                         && form.avgErrorChart.getEpochNumber()
                         < form.somData.getNumberOfEpochs()) {
-                    final AvgErrorChart biggerChart = new AvgErrorChart(
-                            form.somData.getNumberOfEpochs(), form.avgErrorChart);
                     removeChart(form);
-                    form.avgErrorChart = biggerChart;
-                    form.contentPane.add(form.avgErrorChart, 0, 2, 4, 1);
                 }
                 form.somData.registerLastCreatedSomParameters();
                 disableControls(form, false, false, false, false, true, true, false, true);

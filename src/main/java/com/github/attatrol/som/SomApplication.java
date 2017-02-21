@@ -1,7 +1,5 @@
 package com.github.attatrol.som;
 
-import java.util.Locale;
-
 import com.github.attatrol.som.ui.SetupSomPane;
 import com.github.attatrol.som.ui.i18n.SomI18nProvider;
 
