@@ -8,6 +8,7 @@ import com.github.attatrol.preprocessing.ui.TokenDataSourceAndMisc;
 import com.github.attatrol.som.som.Som;
 import com.github.attatrol.som.som.functions.learning.LearningFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunction;
+import com.github.attatrol.som.som.neuron.FuzzyNeuronFactory;
 import com.github.attatrol.som.som.topology.RectangleTopology;
 import com.github.attatrol.som.som.topology.SomTopology;
 
@@ -35,13 +36,18 @@ public interface SomInitializer {
      *        neighborhood function of SOM
      * @param learningFunction
      *        learning function of SOM
+     * @param neuronFactory
+     *        factory for a certain neuron type
+     * @param winnerHandicapFactor
+     *        defines how severe will be a distance handicap for often winning neurons
      * @return SOM instance
      * @throws IOException
      *         on internal i/o data source error
      */
     Som createSom(TokenDataSourceAndMisc tdsm, DistanceFunction distanceFunction,
             SomTopology topology, NeighborhoodFunction neighborhoodFunction,
-            LearningFunction learningFunction) throws IOException;
+            LearningFunction learningFunction, FuzzyNeuronFactory<?> neuronFactory,
+            double winnerHandicapFactor) throws IOException;
 
     /**
      * Checks if data source is non empty, then calls
@@ -65,12 +71,13 @@ public interface SomInitializer {
      */
     default Som checkDataSourceAndCreateSom(TokenDataSourceAndMisc tdsm,
             DistanceFunction distanceFunction, SomTopology topology,
-            NeighborhoodFunction neighborhoodFunction, LearningFunction learningFunction)
+            NeighborhoodFunction neighborhoodFunction, LearningFunction learningFunction,
+            FuzzyNeuronFactory<?> neuronFactory, double winnerHandicapFactor)
             throws IOException, IllegalStateException {
         tdsm.getTokenDataSource().reset();
         if (tdsm.getTokenDataSource().hasNext()) {
             return createSom(tdsm, distanceFunction, topology, neighborhoodFunction,
-                    learningFunction);
+                    learningFunction, neuronFactory, winnerHandicapFactor);
         }
         else {
             throw new IllegalStateException("Empty data source is not allowed!");

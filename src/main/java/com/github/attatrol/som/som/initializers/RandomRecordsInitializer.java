@@ -14,7 +14,7 @@ import com.github.attatrol.som.som.Som;
 import com.github.attatrol.som.som.functions.learning.LearningFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunction;
 import com.github.attatrol.som.som.neuron.AbstractNeuron;
-import com.github.attatrol.som.som.neuron.FuzzyNeuron;
+import com.github.attatrol.som.som.neuron.FuzzyNeuronFactory;
 import com.github.attatrol.som.som.topology.Point;
 import com.github.attatrol.som.som.topology.SomTopology;
 
@@ -31,8 +31,8 @@ public class RandomRecordsInitializer implements SomInitializer {
     @Override
     public synchronized Som createSom(TokenDataSourceAndMisc tdsm, DistanceFunction distanceFunction,
             SomTopology topology, NeighborhoodFunction neighborhoodFunction,
-            LearningFunction learningFunction)
-            throws IOException {
+            LearningFunction learningFunction, FuzzyNeuronFactory<?> neuronFactory,
+            double winnerHandicapFactor) throws IOException {
         final AbstractTokenDataSource<?> dataSource = tdsm.getTokenDataSource();
         final long numberOfRecords = getNumberOfRecords(dataSource);
         final List<Point> neuronPositions = topology.getNeuronPositions();
@@ -41,11 +41,12 @@ public class RandomRecordsInitializer implements SomInitializer {
                 .getSampleFrequencies(dataSource, tokenTypes);
         List<AbstractNeuron> neurons = new ArrayList<>();
         for (Point position : neuronPositions) {
-            neurons.add(new FuzzyNeuron(getRandomData(dataSource,
+            neurons.add(neuronFactory.createNeuron(getRandomData(dataSource,
                     numberOfRecords), position, tokenTypes, sampleFrequencies));
         }
+        final long dataSourceSize = SampleFrequencyCalculator.getDataSourceSize(dataSource);
         return new Som(neurons, topology, dataSource, distanceFunction,
-                neighborhoodFunction, learningFunction);
+                neighborhoodFunction, learningFunction, winnerHandicapFactor, dataSourceSize);
     }
 
     /**

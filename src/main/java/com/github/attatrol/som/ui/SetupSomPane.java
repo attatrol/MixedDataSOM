@@ -21,6 +21,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -175,10 +176,10 @@ public class SetupSomPane extends BorderPane {
      * desired average error level input text field.
      */
     private PositiveDoubleParsingTextField winnerLoweringFactorTextField =
-            new ZeroToOneDoubleParsingTetField();
+            new PositiveDoubleParsingTextField();
     {
-        averageErrorTextField.getValueProperty().addListener(
-                (observable, oldValue,newValue) -> somData.setDesiredAverageError(newValue));
+        winnerLoweringFactorTextField.getValueProperty().addListener(
+                (observable, oldValue,newValue) -> somData.setWinnerLoweringFactor(newValue));
     }
 
     /**
@@ -273,7 +274,7 @@ public class SetupSomPane extends BorderPane {
                 epochNumberTextField,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.avgerror")),
                 averageErrorTextField,
-                new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.winner.lowering")),
+                new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.patronage")),
                 winnerLoweringFactorTextField,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.choose.topology")),
                 rectangleTopologyFactoryComboBox,
@@ -295,7 +296,7 @@ public class SetupSomPane extends BorderPane {
             // make sure the list above are Region instances
             ((Region) child).setMaxWidth(Double.MAX_VALUE);
         }
-        return buttonPane;
+        return new ScrollPane(buttonPane);
     }
 
     /**
@@ -362,9 +363,11 @@ public class SetupSomPane extends BorderPane {
                 form.learningRegimesSwitchCheckBox.setSelected(false);
                 form.heightTextField.setTextAndValue(5);
                 form.widthTextField.setTextAndValue(5);
+                form.winnerLoweringFactorTextField.setTextAndValue(0.);
                 form.rectangleTopologyFactoryComboBox.getSelectionModel().clearSelection();
                 form.learningFunctionFactoryComboBox.getSelectionModel().clearSelection();
                 form.neighborhoodFunctionFactoryComboBox.getSelectionModel().clearSelection();
+                form.neuronFactoryComboBox.getSelectionModel().clearSelection();
                 form.somInitializerComboBox.getSelectionModel().clearSelection();
                 disableControls(form, false, true, true, true, true, true, true, true);
             }
@@ -408,7 +411,11 @@ public class SetupSomPane extends BorderPane {
                 if (form.avgErrorChart != null 
                         && form.avgErrorChart.getEpochNumber()
                         < form.somData.getNumberOfEpochs()) {
+                    final AvgErrorChart biggerChart = new AvgErrorChart(
+                            form.somData.getNumberOfEpochs(), form.avgErrorChart);
                     removeChart(form);
+                    form.avgErrorChart = biggerChart;
+                    form.contentPane.add(form.avgErrorChart, 0, 2, 4, 1);
                 }
                 form.somData.registerLastCreatedSomParameters();
                 disableControls(form, false, false, false, false, true, true, false, true);
@@ -434,7 +441,7 @@ public class SetupSomPane extends BorderPane {
         RESULT_FORM_CRREATION_IN_PROGRESS_9(SomI18nProvider.INSTANCE.getValue("main.state.9")) {
             @Override
             public void applyState(SetupSomPane form) {
-                disableControls(form, true, true, true, true, false, true, false, false);
+                disableControls(form, true, true, true, true, true, true, false, false);
             }
         },
         SOM_CREATION_ERROR(SomI18nProvider.INSTANCE.getValue("main.state.error.som.creation")) {
@@ -497,9 +504,11 @@ public class SetupSomPane extends BorderPane {
                     || form.learningRegimesSwitchCheckBox.isSelected());
             form.heightTextField.setDisable(createSomButtonDisabled);
             form.widthTextField.setDisable(createSomButtonDisabled);
+            form.winnerLoweringFactorTextField.setDisable(createSomButtonDisabled);
             form.learningFunctionFactoryComboBox.setDisable(createSomButtonDisabled);
             form.neighborhoodFunctionFactoryComboBox.setDisable(createSomButtonDisabled);
             form.rectangleTopologyFactoryComboBox.setDisable(createSomButtonDisabled);
+            form.neuronFactoryComboBox.setDisable(createSomButtonDisabled);
             form.somInitializerComboBox.setDisable(createSomButtonDisabled);
             form.createSomButton.setDisable(createSomButtonDisabled);
             form.learnSomButton.setDisable(learnSomButtonDisabled);
@@ -515,8 +524,10 @@ public class SetupSomPane extends BorderPane {
                     form.dataSourceTableView.getItems().clear();
                 }
             }
-            form.reloadTableViewButton.setDisable(tableViewDisabled);
-            form.loadNextTableViewButton.setDisable(tableViewDisabled);
+            form.reloadTableViewButton.setDisable(tableViewDisabled
+                    || !cancelLearnSomButtonDisabled);
+            form.loadNextTableViewButton.setDisable(tableViewDisabled
+                    || !cancelLearnSomButtonDisabled);
         }
     }
 

@@ -17,7 +17,7 @@ import com.github.attatrol.som.som.Som;
 import com.github.attatrol.som.som.functions.learning.LearningFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunction;
 import com.github.attatrol.som.som.neuron.AbstractNeuron;
-import com.github.attatrol.som.som.neuron.FuzzyNeuron;
+import com.github.attatrol.som.som.neuron.FuzzyNeuronFactory;
 import com.github.attatrol.som.som.topology.Point;
 import com.github.attatrol.som.som.topology.SomTopology;
 
@@ -35,7 +35,8 @@ public class RandomWeightsInitializer implements SomInitializer {
     @Override
     public synchronized Som createSom(TokenDataSourceAndMisc tdsm,
             DistanceFunction distanceFunction, SomTopology topology,
-            NeighborhoodFunction neighborhoodFunction, LearningFunction learningFunction)
+            NeighborhoodFunction neighborhoodFunction, LearningFunction learningFunction,
+            FuzzyNeuronFactory<?> neuronFactory, double winnerHandicapFactor)
             throws IOException {
         final TokenType[] tokenTypes = tdsm.getTokenTypes();
         final AbstractTokenDataSource<?> dataSource = tdsm.getTokenDataSource();
@@ -51,10 +52,11 @@ public class RandomWeightsInitializer implements SomInitializer {
             for (int i = 0; i < recordLength; i++) {
                 weights[i] = initialValueProducers[i].produceValue();
             }
-            neurons.add(new FuzzyNeuron(weights, position, tokenTypes, sampleFrequencies));
+            neurons.add(neuronFactory.createNeuron(weights, position, tokenTypes, sampleFrequencies));
         }
+        final long dataSourceSize = SampleFrequencyCalculator.getDataSourceSize(dataSource);
         return new Som(neurons, topology, dataSource, distanceFunction, neighborhoodFunction,
-                learningFunction);
+                learningFunction, winnerHandicapFactor, dataSourceSize);
     }
 
     /**

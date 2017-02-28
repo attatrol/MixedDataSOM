@@ -23,7 +23,7 @@ public interface NeighborhoodFunction {
     /**
      * This is minimal radius of neigborhood
      */
-    double MINIMAL_RADIUS = .0001;
+    double MINIMAL_RADIUS = 1.01;
 
     /**
      * Calculates value of the neighborhood function

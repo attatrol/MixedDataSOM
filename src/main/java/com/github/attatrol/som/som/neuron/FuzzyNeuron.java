@@ -85,13 +85,20 @@ public class FuzzyNeuron extends AbstractNeuron {
         }
     }
 
+    /**
+     * Does nothing on the epoch end.
+     */
+    @Override
+    public void markEpochEnd() {
+    }
+
     protected double calculateIncomingTokenPower(Object newWeight, int index, double diminishingFactor,
             boolean isBmu) {
         Double value = weightFuzzySets[index].get(newWeight);
         if (value == null) {
             value = 0.;
         }
-        value += sampleFrequencies[index].get(newWeight) * diminishingFactor;
+        value += diminishingFactor / sampleFrequencies[index].get(newWeight);
         return value;
     }
 

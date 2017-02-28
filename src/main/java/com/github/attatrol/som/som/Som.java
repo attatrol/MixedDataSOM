@@ -3,8 +3,10 @@ package com.github.attatrol.som.som;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.github.attatrol.preprocessing.datasource.AbstractTokenDataSource;
 import com.github.attatrol.preprocessing.datasource.Record;
@@ -12,7 +14,6 @@ import com.github.attatrol.preprocessing.distance.DistanceFunction;
 import com.github.attatrol.som.som.functions.learning.LearningFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunction;
 import com.github.attatrol.som.som.neuron.AbstractNeuron;
-import com.github.attatrol.som.som.neuron.FuzzyNeuron;
 import com.github.attatrol.som.som.topology.Point;
 import com.github.attatrol.som.som.topology.SomTopology;
 
@@ -31,21 +32,39 @@ public class Som {
 
     private final DistanceFunction distanceFunction;
 
+    private final double globalPatronageFactor;
+
+    private final long dataSourceSize;
+
     private NeighborhoodFunction neighborhoodFunction;
 
     private LearningFunction learningFunction;
+
+    private Map<AbstractNeuron, Long> winCount = new HashMap<>();
+
+    private Map<AbstractNeuron, Long> oldWinCount = new HashMap<>();
+
+    Map<AbstractNeuron, Set<AbstractNeuron>> patrons = new HashMap<>();
 
     public Som(List<AbstractNeuron> neurons, SomTopology topology,
             AbstractTokenDataSource<?> dataSource,
             DistanceFunction distanceFunction,
             NeighborhoodFunction neighborhoodFunction,
-            LearningFunction learningFunction) {
+            LearningFunction learningFunction,
+            double winnerHandicap,
+            long dataSourceSize) {
         this.neurons = neurons;
         this.topology = topology;
         this.dataSource = dataSource;
+        this.globalPatronageFactor = winnerHandicap;
+        this.dataSourceSize = dataSourceSize;
         this.distanceFunction = distanceFunction;
         this.neighborhoodFunction = neighborhoodFunction;
         this.learningFunction = learningFunction;
+        for (AbstractNeuron neuron : neurons) {
+            winCount.put(neuron, 0L);
+            oldWinCount.put(neuron, 0L);
+        }
     }
 
     /**
@@ -56,6 +75,14 @@ public class Som {
     public double learnEpoch(int epochNumber) throws IOException {
         final Map<Double, Double> speedFactorMap =
                 calculateSpeedFactorMap(epochNumber);
+        updatePressureAdjustments(speedFactorMap);
+        Map<AbstractNeuron, Long> temp = winCount;
+        winCount = oldWinCount;
+        oldWinCount = temp;
+        for (AbstractNeuron neuron : neurons) {
+            winCount.put(neuron, 0L);
+        }
+        System.out.println("Epoch");
         double errorSum = 0.;
         long counter = 0L;
         dataSource.reset();
@@ -63,7 +90,12 @@ public class Som {
             errorSum += learn(dataSource.next(), speedFactorMap);
             counter++;
         }
-        return errorSum / counter;
+        for (AbstractNeuron neuron : neurons) {
+            neuron.markEpochEnd();
+        }
+        final double avgError = errorSum / counter;
+        System.out.println(avgError + " " + counter);
+        return avgError;
     }
 
     /**
@@ -95,6 +127,49 @@ public class Som {
     }
 
     /**
+     * @return distance function, it is state-less.
+     */
+    public DistanceFunction getDistanceFunction() {
+        return distanceFunction;
+    }
+
+    /**
+     * Updates pressure adjustments according to the original algorithm.
+     * @param speedFactorMap 
+     * @param counter 
+     */
+    private void updatePressureAdjustments(Map<Double, Double> speedFactorMap) {
+        Map<AbstractNeuron, AbstractNeuron> patronageMap = new HashMap<>();
+        for (AbstractNeuron neuron : neurons) {
+            double patronFactor = 0.;
+            AbstractNeuron patron = null;
+            for (AbstractNeuron neuron1 : neurons) {
+                if (winCount.get(neuron) < winCount.get(neuron1)) {
+                    final double distance = topology.getDistance(neuron1.getPosition(),
+                            neuron.getPosition());
+                    final double patronFactorCandidate = speedFactorMap.get(distance)
+                            * speedFactorMap.get(distance)
+                            * winCount.get(neuron1);
+                    if (patronFactorCandidate > patronFactor) {
+                        patronFactor = patronFactorCandidate;
+                        patron = neuron1;
+                    }
+                }
+            }
+            patronageMap.put(neuron, patron);
+        }
+        patrons.clear();
+        for (Map.Entry<AbstractNeuron, AbstractNeuron> entry : patronageMap.entrySet()) {
+            Set<AbstractNeuron> patroned = patrons.get(entry.getValue());
+            if (patroned == null) {
+                patroned = new HashSet<>();
+                patrons.put(entry.getValue(), patroned);
+            }
+            patroned.add(entry.getKey());
+        }
+    }
+
+    /**
      * Calculates speed factors for current epoch. They are presented as a map
      * where keys are distances between neurons.
      * @param epochNumber current epoch number
@@ -121,27 +196,32 @@ public class Som {
     /**
      * Executes single step of SOM learning.
      * @param data a record (incoming vector)
-     * @param speedFactorMap map that contains speed factors for weight changes for every
+     * @param speedFactorMap map that contains speed factors for weight changes
+     * @param counter record count in this epoch
      * distance for current epoch
      * @return distance between neuron and incoming vector
      */
     private double learn(Record<Object[]> record, Map<Double, Double> speedFactorMap) {
         final Object[] data = record.getData();
         AbstractNeuron bmu = neurons.get(0);
-        double bmuDistance = distanceFunction.calculate(neurons.get(0).getWeights(), data);
+        double bmuDistance = distanceFunction.calculate(bmu.getWeights(), data);
         for (int i = 1; i < neurons.size(); i++) {
             final AbstractNeuron neuron = neurons.get(i);
-            final double distance = distanceFunction.calculate(neuron.getWeights(), data);
-            if (distance < bmuDistance) {
-                bmuDistance = distance;
+            final double weightDistance = distanceFunction.calculate(neuron.getWeights(), data);
+            if (weightDistance < bmuDistance) {
+                bmuDistance = weightDistance;
                 bmu = neuron;
             }
         }
+        winCount.put(bmu, winCount.get(bmu) + 1);
         final Point bmuPosition = bmu.getPosition();
+        final Set<AbstractNeuron> patroned = patrons.get(bmu);
         for (AbstractNeuron neuron : neurons) {
             final double distance = topology.getDistance(bmuPosition,
                     neuron.getPosition());
-            neuron.changeWeights(data, speedFactorMap.get(distance), bmu == neuron);
+            final double patronageFactor = patroned != null && patroned.contains(neuron) ? 1. + globalPatronageFactor : 1.;
+            neuron.changeWeights(data, speedFactorMap.get(distance)
+                    * patronageFactor, bmu == neuron);
         }
         return bmuDistance;
     }

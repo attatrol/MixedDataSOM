@@ -7,8 +7,6 @@ import com.github.attatrol.som.som.topology.Point;
 
 public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
 
-    private static final double MINIMAL_FREQUENCY_ADJUSTMENT_RATIO = 0.1;
-
     protected final double[] fuzzyWeightSum;
 
     public FrequencyControlledFuzzyNeuron(Object[] initialWeights, Point position,
@@ -20,6 +18,9 @@ public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
         }
     }
 
+    /**
+     * Only the last but one brunch changed.
+     */
     @Override
     public void changeWeights(Object[] newWeights, double diminishingFactor, boolean isBmu) {
         for (int i = 0; i < tokenTypes.length; i++) {
@@ -44,9 +45,14 @@ public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
             case BINARY:
             case BINARY_DIGITAL:
             case CATEGORICAL_STRING:
-                final double incomingValuePower = calculateIncomingTokenPower(
+                double incomingValuePower = calculateIncomingTokenPower(
                         newWeights[i], i, diminishingFactor, isBmu);
-                fuzzyWeightSum[i] += incomingValuePower - weightFuzzySets[i].get(newWeights[i]);
+                Double oldValue = weightFuzzySets[i].get(newWeights[i]);
+                if (oldValue == null) {
+                    oldValue = 0.;
+                }
+                // single change
+                fuzzyWeightSum[i] += incomingValuePower - oldValue;
                 weightFuzzySets[i].put(newWeights[i], incomingValuePower);
                 if (newWeights[i].equals(weights[i])) {
                     weightsPower[i] = incomingValuePower;
@@ -54,7 +60,7 @@ public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
                 else if (incomingValuePower > weightsPower[i]) {
                     weightsPower[i] = incomingValuePower;
                     weights[i] = newWeights[i];
-                    // System.out.println("Change!");
+                    System.out.println("Change!");
                 }
                 break;
             default:
@@ -64,20 +70,21 @@ public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
         }
     }
 
-    @Override
     protected double calculateIncomingTokenPower(Object newWeight, int index, double diminishingFactor,
             boolean isBmu) {
         Double value = weightFuzzySets[index].get(newWeight);
         if (value == null) {
             value = 0.;
         }
-        value += diminishingFactor * getFequencyAdjustment(newWeight, value, index);
+        value += getFequencyAdjustment(value, index) * diminishingFactor
+                / sampleFrequencies[index].get(newWeight);
         return value;
     }
 
-    private Double getFequencyAdjustment(Object newWeight, Double value, int index) {
-        final double adjustment = sampleFrequencies[index].get(newWeight) - value / fuzzyWeightSum[index];
-        return Math.max(adjustment, MINIMAL_FREQUENCY_ADJUSTMENT_RATIO);
+    private Double getFequencyAdjustment(Double value, int index) {
+        final double adjustment = value / fuzzyWeightSum[index];
+        final double function = 2. / 1. + Math.exp(-4. * adjustment);
+        return function;
     }
 
     /**

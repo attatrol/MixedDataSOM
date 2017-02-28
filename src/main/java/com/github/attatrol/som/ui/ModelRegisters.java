@@ -7,6 +7,7 @@ import java.util.List;
 import com.github.attatrol.som.som.functions.learning.HyperbolicLearningFunction;
 import com.github.attatrol.som.som.functions.learning.LearningFunctionFactory;
 import com.github.attatrol.som.som.functions.learning.LinearLearningFunction;
+import com.github.attatrol.som.som.functions.neighbourhood.AbsentNeighborhoodFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.BubbleNeighborhoodFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.GaussNeighbourhoodFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.LinearNeighborhoodFunction;
@@ -17,6 +18,7 @@ import com.github.attatrol.som.som.initializers.SomInitializer;
 import com.github.attatrol.som.som.neuron.FrequencyControlledFuzzyNeuron;
 import com.github.attatrol.som.som.neuron.FuzzyNeuron;
 import com.github.attatrol.som.som.neuron.FuzzyNeuronFactory;
+import com.github.attatrol.som.som.neuron.ResettingFuzzyNeuron;
 import com.github.attatrol.som.som.topology.RectangleTopology;
 import com.github.attatrol.som.som.topology.RectangleTopologyFactory;
 import com.github.attatrol.som.som.topology.ToroidalTopology;
@@ -32,8 +34,8 @@ final class ModelRegisters {
     public static final List<LearningFunctionFactory<?>> LEARNING_FUNCTON_FACTORIES;
     static {
         List<LearningFunctionFactory<?>> set = new ArrayList<>();
-        set.add(new HyperbolicLearningFunction.Factory());
         set.add(new LinearLearningFunction.Factory());
+        set.add(new HyperbolicLearningFunction.Factory());
         LEARNING_FUNCTON_FACTORIES = Collections.unmodifiableList(set);
     }
 
@@ -43,6 +45,7 @@ final class ModelRegisters {
         set.add(new GaussNeighbourhoodFunction.Factory());
         set.add(new LinearNeighborhoodFunction.Factory());
         set.add(new BubbleNeighborhoodFunction.Factory());
+        set.add(new AbsentNeighborhoodFunction.Factory());
         NEIGHBORHOOD_FUNCTON_FACTORIES = Collections.unmodifiableList(set);
     }
 
@@ -67,6 +70,7 @@ final class ModelRegisters {
         List<FuzzyNeuronFactory<?>> set = new ArrayList<>();
         set.add(new FuzzyNeuron.Factory());
         set.add(new FrequencyControlledFuzzyNeuron.Factory());
+        set.add(new ResettingFuzzyNeuron.Factory());
         FUZZY_NEURON_FACTORIES = Collections.unmodifiableList(set);
     }
 

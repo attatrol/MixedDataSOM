@@ -9,7 +9,6 @@ import java.util.Map;
 import com.github.attatrol.preprocessing.datasource.AbstractTokenDataSource;
 import com.github.attatrol.preprocessing.datasource.Record;
 import com.github.attatrol.som.som.neuron.AbstractNeuron;
-import com.github.attatrol.som.som.neuron.FuzzyNeuron;
 
 /**
  * Result of applying a trained SOM to a data source.
@@ -66,10 +65,11 @@ public class SomClusterResult {
         List<Record<Object[]>> records = new ArrayList<>(numberOfRecords);
         int counter = 0;
         dataSource.reset();
-        while (dataSource.hasNext() && counter++ < numberOfRecords ) {
+        while (dataSource.hasNext() && counter < numberOfRecords ) {
             final Record<Object[]> record = dataSource.next();
             if (clusterIndex == getCluster(record)) {
                 records.add(record);
+                counter++;
             }
         }
         return records;

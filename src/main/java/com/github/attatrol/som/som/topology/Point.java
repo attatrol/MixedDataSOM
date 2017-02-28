@@ -53,5 +53,8 @@ public final class Point {
         return true;
     }
 
-    
+    @Override
+    public String toString() {
+        return String.format("[%f, %f]", x, y);
+    }
 }

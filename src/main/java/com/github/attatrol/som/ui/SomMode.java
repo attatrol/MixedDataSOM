@@ -9,6 +9,7 @@ import com.github.attatrol.som.som.Som;
 import com.github.attatrol.som.som.functions.learning.LearningFunction;
 import com.github.attatrol.som.som.functions.neighbourhood.NeighborhoodFunction;
 import com.github.attatrol.som.som.initializers.SomInitializer;
+import com.github.attatrol.som.som.neuron.FuzzyNeuronFactory;
 import com.github.attatrol.som.som.topology.SomTopology;
 import com.github.attatrol.som.ui.SetupSomPane.SetupFormState;
 import com.github.attatrol.som.ui.i18n.SomI18nProvider;
@@ -125,6 +126,10 @@ enum SomMode {
             throw new IllegalArgumentException(
                     SomI18nProvider.INSTANCE.getValue("ui.exception.neighborhood.missing"));
         }
+        if (somData.getFuzzyNeuronFactory() == null) {
+            throw new IllegalArgumentException(
+                    SomI18nProvider.INSTANCE.getValue("ui.exception.neuron.factory.missing"));
+        }
         if (somData.getSomInitializer() == null) {
             throw new IllegalArgumentException(
                     SomI18nProvider.INSTANCE.getValue("ui.exception.init.missing"));
@@ -177,10 +182,12 @@ enum SomMode {
                                 .produceNeighborhoodFunction(epochNumber, width * height);
                 final LearningFunction learningFunction =
                         somData.getLearningFunctionFactory().produceLearningFunction(epochNumber);
+                final FuzzyNeuronFactory<?> neuronFactory = somData.getFuzzyNeuronFactory();
+                final double winnerHandicapFactor = somData.getWinnerLoweringFactor();
                 final SomInitializer somInitializer = somData.getSomInitializer();
                 final Som som = somInitializer.checkDataSourceAndCreateSom(somData.getTdsm(),
                         somData.getDistanceFunction(), topology, neighborhoodFunction,
-                        learningFunction);
+                        learningFunction, neuronFactory, winnerHandicapFactor);
                 somData.setSom(som);
                 Platform.runLater(() -> form.setInternalState(SetupFormState.SOM_CREATED_6));
             }
@@ -233,11 +240,13 @@ enum SomMode {
                                 .produceNeighborhoodFunction(width * height);
                 final LearningFunction learningFunction =
                         somData.getLearningFunctionFactory().produceLearningFunction();
+                final FuzzyNeuronFactory<?> neuronFactory = somData.getFuzzyNeuronFactory();
+                final double winnerHandicapFactor = somData.getWinnerLoweringFactor();
                 final SomInitializer somInitializer = somData.getSomInitializer();
 
                 final Som som = somInitializer.checkDataSourceAndCreateSom(somData.getTdsm(),
                         somData.getDistanceFunction(), topology, neighborhoodFunction,
-                        learningFunction);
+                        learningFunction, neuronFactory, winnerHandicapFactor);
                 somData.setSom(som);
                 Platform.runLater(() -> form.setInternalState(SetupFormState.SOM_CREATED_6));
             }
@@ -288,8 +297,8 @@ enum SomMode {
                         && !somData.isLearnSomAbortFlag()) {
                     final double avgError = som.learnEpoch(epochCounter);
                     chartFiller.registerEpoch(avgError);
-                    System.out.println(String.format("Epoch: %d, Error: %f",
-                            epochCounter, avgError));
+                    //System.out.println(String.format("Epoch: %d, Error: %f",
+                            //epochCounter, avgError));
                     //System.out.println(som);
                 }
                 chartFiller.dumpResidualToChart();
