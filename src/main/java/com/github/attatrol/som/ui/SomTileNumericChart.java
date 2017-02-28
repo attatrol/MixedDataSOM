@@ -1,5 +1,7 @@
 package com.github.attatrol.som.ui;
 
+import com.github.attatrol.som.ui.i18n.SomI18nProvider;
+
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -19,6 +21,6 @@ class SomTileNumericChart extends LineChart<Number, Number> {
                     values[i]);
             series.getData().add(point);
         }
-        setTitle("Frequency distribution");
+        setTitle(SomI18nProvider.INSTANCE.getValue("result.chart.numeric.title"));
     }
 }

@@ -27,7 +27,7 @@ class SomTileBarChart extends BarChart<String, Number> {
         super(new CategoryAxis(), new NumberAxis(0., 1., .1));
         setAnimated(false);
         setLegendVisible(false);
-        setTitle("Token frequency chart");
+        setTitle(SomI18nProvider.INSTANCE.getValue("result.chart.bar.title"));
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         TreeMap<Double, List<Object>> reverseFrequencies = ColorUtils.revertFrequencyMap(frequencies);
         for (Double frequency : reverseFrequencies.descendingKeySet()) {

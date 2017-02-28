@@ -430,7 +430,7 @@ public class ResultPane extends GridPane {
     public class QuantityColorScheme extends ColorScheme {
 
         public QuantityColorScheme(List<SomTile> tiles) {
-            name = "Quantity";
+            name = SomI18nProvider.INSTANCE.getValue("result.color.scheme.quantity");
             long maxSize = 0L;
             long minSize = 0L;
             Iterator<SomTile> iterator = tiles.iterator();
