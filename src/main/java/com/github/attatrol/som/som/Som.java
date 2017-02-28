@@ -44,7 +44,7 @@ public class Som {
 
     private Map<AbstractNeuron, Long> oldWinCount = new HashMap<>();
 
-    Map<AbstractNeuron, Set<AbstractNeuron>> patrons = new HashMap<>();
+    Map<AbstractNeuron, List<Boolean>> patrons = new HashMap<>();
 
     public Som(List<AbstractNeuron> neurons, SomTopology topology,
             AbstractTokenDataSource<?> dataSource,
@@ -159,13 +159,22 @@ public class Som {
             patronageMap.put(neuron, patron);
         }
         patrons.clear();
+        Map<AbstractNeuron, Set<AbstractNeuron>> patronsMap = new HashMap<>();
         for (Map.Entry<AbstractNeuron, AbstractNeuron> entry : patronageMap.entrySet()) {
-            Set<AbstractNeuron> patroned = patrons.get(entry.getValue());
+            Set<AbstractNeuron> patroned = patronsMap.get(entry.getValue());
             if (patroned == null) {
                 patroned = new HashSet<>();
-                patrons.put(entry.getValue(), patroned);
+                patronsMap.put(entry.getValue(), patroned);
             }
             patroned.add(entry.getKey());
+        }
+        for (AbstractNeuron patron : patronsMap.keySet()) {
+            List<Boolean> vector = new ArrayList<>();
+            Set<AbstractNeuron> patroned = patronsMap.get(patron);
+            patrons.put(patron, vector);
+            for (AbstractNeuron neuron : neurons) {
+                vector.add(patroned.contains(neuron));
+            }
         }
     }
 
@@ -215,13 +224,14 @@ public class Som {
         }
         winCount.put(bmu, winCount.get(bmu) + 1);
         final Point bmuPosition = bmu.getPosition();
-        final Set<AbstractNeuron> patroned = patrons.get(bmu);
-        for (AbstractNeuron neuron : neurons) {
+        final List<Boolean> patronedVector = patrons.get(bmu);
+        for (int i = 0; i < neurons.size(); i++) {
+            final AbstractNeuron neuron = neurons.get(i);
             final double distance = topology.getDistance(bmuPosition,
                     neuron.getPosition());
-            final double patronageFactor = patroned != null && patroned.contains(neuron) ? 1. + globalPatronageFactor : 1.;
-            neuron.changeWeights(data, speedFactorMap.get(distance)
-                    * patronageFactor, bmu == neuron);
+            final double patronageFactor = patronedVector != null && patronedVector.get(i) ? 1. + globalPatronageFactor : 1.;
+            neuron.changeWeights(data, speedFactorMap.get(distance) * patronageFactor
+                    , bmu == neuron);
         }
         return bmuDistance;
     }

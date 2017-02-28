@@ -26,6 +26,7 @@ class ShowResultFormButton extends Button {
         setOnAction(ev -> {
             form.setInternalState(SetupFormState.RESULT_FORM_CRREATION_IN_PROGRESS_9);
             final Thread resultFormCreationThread = new Thread(new ResultFormProducer(form));
+            resultFormCreationThread.setDaemon(true);
             resultFormCreationThread.start();
         });
     }

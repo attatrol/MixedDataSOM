@@ -30,17 +30,8 @@ public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
                 weights[i] = value + diminishingFactor * ((Double) newWeights[i] - value);
                 break;
             case INTEGER:
-                int intValue = (Integer) weights[i];
-                weightsPower[i] += diminishingFactor * ((Integer) newWeights[i] - intValue);
-                while (weightsPower[i] < 0) {
-                    intValue--;
-                    weightsPower[i] += 1;
-                }
-                while (weightsPower[i] > 1) {
-                    intValue++;
-                    weightsPower[i] -= 1;
-                }
-                weights[i] = intValue;
+                weightsPower[i] += diminishingFactor * ((Integer) newWeights[i] - weightsPower[i]);
+                weights[i] = (int) weightsPower[i];
                 break;
             case BINARY:
             case BINARY_DIGITAL:

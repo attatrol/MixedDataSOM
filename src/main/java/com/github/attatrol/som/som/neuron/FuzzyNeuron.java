@@ -40,6 +40,9 @@ public class FuzzyNeuron extends AbstractNeuron {
                 weightFuzzySets[i].put(weights[i], INITIAL_CATEGORICAL_WEIGHT);
                 weightsPower[i] = INITIAL_CATEGORICAL_WEIGHT;
             }
+            else if (tokenTypes[i] == TokenType.INTEGER) {
+                weightsPower[i] = (Integer) weights[i];
+            }
         }
     }
 
@@ -51,17 +54,8 @@ public class FuzzyNeuron extends AbstractNeuron {
                 weights[i] = value + diminishingFactor * ((Double) newWeights[i] - value);
                 break;
             case INTEGER:
-                int intValue = (Integer) weights[i];
-                weightsPower[i] += diminishingFactor * ((Integer) newWeights[i] - intValue);
-                while (weightsPower[i] < 0) {
-                    intValue--;
-                    weightsPower[i] += 1;
-                }
-                while (weightsPower[i] > 1) {
-                    intValue++;
-                    weightsPower[i] -= 1;
-                }
-                weights[i] = intValue;
+                weightsPower[i] += diminishingFactor * ((Integer) newWeights[i] - weightsPower[i]);
+                weights[i] = (int) weightsPower[i];
                 break;
             case BINARY:
             case BINARY_DIGITAL:
@@ -98,7 +92,7 @@ public class FuzzyNeuron extends AbstractNeuron {
         if (value == null) {
             value = 0.;
         }
-        value += diminishingFactor / sampleFrequencies[index].get(newWeight);
+        value += diminishingFactor * sampleFrequencies[index].get(newWeight);
         return value;
     }
 

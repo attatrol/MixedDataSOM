@@ -29,11 +29,11 @@ public class GaussNeighbourhoodFunction implements NeighborhoodFunction {
 
     @Override
     public double calculate(double distance, int epoch) {
-        double radius = 1 - epoch / epochNumber;
-        if (radius < MINIMAL_RADIUS) {
-            radius = MINIMAL_RADIUS;
+        double radius = 1.01 - epoch / epochNumber;
+        if (radius < EPS) {
+            radius = EPS;
         }
-        final double value = Math.exp(-distance / radius);
+        final double value = Math.exp(-distance * distance / 2. / radius);
         return value < EPS ? EPS : value;
     }
 
