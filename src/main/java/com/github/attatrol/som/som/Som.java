@@ -34,6 +34,7 @@ public class Som {
 
     private final double globalPatronageFactor;
 
+    @SuppressWarnings("unused") // may be used in future
     private final long dataSourceSize;
 
     private NeighborhoodFunction neighborhoodFunction;

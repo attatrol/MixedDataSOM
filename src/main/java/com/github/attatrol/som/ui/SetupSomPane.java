@@ -12,7 +12,7 @@ import com.github.attatrol.som.ui.i18n.SomI18nComboBox;
 import com.github.attatrol.som.ui.i18n.SomI18nProvider;
 import com.github.attatrol.som.ui.utils.PositiveDoubleParsingTextField;
 import com.github.attatrol.som.ui.utils.PositiveIntegerParsingTextField;
-import com.github.attatrol.som.ui.utils.ZeroToOneDoubleParsingTetField;
+import com.github.attatrol.som.ui.utils.benchmarkfactories.BenchmarkUiFactory;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -243,6 +243,11 @@ public class SetupSomPane extends BorderPane {
                 (observable, oldValue,newValue) -> somData.setSomInitializer(newValue));
     }
 
+    private ComboBox<BenchmarkUiFactory> benchmarkComboBox = new BenchmarkComboBox(this);
+    {
+        benchmarkComboBox.getItems().addAll(ModelRegisters.BENCHMARK_FACTORIES);
+    }
+
     /**
      * Default ctor.
      */
@@ -289,7 +294,9 @@ public class SetupSomPane extends BorderPane {
                 createSomButton,
                 learnSomButton,
                 cancelLearnSomButton,
-                showSomButton);
+                showSomButton,
+                new Label(SomI18nProvider.INSTANCE.getValue("main.label.choose.benchmark")),
+                benchmarkComboBox);
         showSomButton.setMaxWidth(Double.MAX_VALUE);
         for (Node child : buttonPane.getChildren()) {
             VBox.setVgrow(child, Priority.ALWAYS);
@@ -444,6 +451,12 @@ public class SetupSomPane extends BorderPane {
                 disableControls(form, true, true, true, true, true, true, false, false);
             }
         },
+        BENCHMARK_IN_PROGRESS_10(SomI18nProvider.INSTANCE.getValue("main.state.10")) {
+            @Override
+            public void applyState(SetupSomPane form) {
+                disableControls(form, true, true, true, true, true, true, false, false);
+            }
+        },
         SOM_CREATION_ERROR(SomI18nProvider.INSTANCE.getValue("main.state.error.som.creation")) {
             @Override
             public void applyState(SetupSomPane form) {
@@ -514,6 +527,7 @@ public class SetupSomPane extends BorderPane {
             form.learnSomButton.setDisable(learnSomButtonDisabled);
             form.cancelLearnSomButton.setDisable(cancelLearnSomButtonDisabled);
             form.showSomButton.setDisable(showSomButtonDisabled);
+            form.benchmarkComboBox.setDisable(showSomButtonDisabled);
             if (form.dataSourceTableView != null) {
                 form.dataSourceTableView.setDisable(tableViewDisabled);
                 if (!tableViewDisabled) {

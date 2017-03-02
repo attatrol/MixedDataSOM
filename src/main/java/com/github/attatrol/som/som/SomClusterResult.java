@@ -48,18 +48,38 @@ public class SomClusterResult {
     }
 
     /**
-     * 
-     * @param record
-     * @return
+     * Assigns actual cluster index to the record.
+     * @param record record from data source
+     * @return cluster index
      */
     public Integer getCluster(Record<Object[]> record) {
         return clusterMap.get(record.getIndex());
     }
 
+    /**
+     * Returns neuron that holds the record
+     * @param record record record from data source
+     * @return neuron
+     */
     public AbstractNeuron getNeuron(Record<Object[]> record) {
         return clusterToNeuronMap.get(getCluster(record));
     }
 
+    /**
+     * @return total number of clusters, including empty ones
+     */
+    public int getClusterNumber() {
+        return clusterMap.size();
+    }
+
+    /**
+     * Generates list of records that belong to this cluster
+     * @param dataSource data source
+     * @param clusterIndex index of cluster
+     * @param numberOfRecords limit of records to be put in list
+     * @return list of records
+     * @throws IOException in case of internal data source failure
+     */
     public List<Record<Object[]>> getClusterRecords(AbstractTokenDataSource<?> dataSource,
             int clusterIndex, int numberOfRecords) throws IOException {
         List<Record<Object[]>> records = new ArrayList<>(numberOfRecords);
@@ -75,6 +95,14 @@ public class SomClusterResult {
         return records;
     }
 
+    /**
+     * Generates list of records that belong to this neuron.
+     * @param dataSource data source
+     * @param neuron neuron
+     * @param numberOfRecords limit of records to be put in list
+     * @return list of records
+     * @throws IOException in case of internal data source failure
+     */
     public List<Record<Object[]>> getClusterRecords(AbstractTokenDataSource<?> dataSource,
             AbstractNeuron neuron, int numberOfRecords) throws IOException {
         return getClusterRecords(dataSource, neuronToClusterMap.get(neuron), numberOfRecords);
@@ -90,6 +118,10 @@ public class SomClusterResult {
         return counter;
     }
 
+    /**
+     * @param neuron neuron
+     * @return size of cluster associated with this neuron
+     */
     public long getClusterSize(AbstractNeuron neuron) {
         return getClusterSize(neuronToClusterMap.get(neuron));
     }

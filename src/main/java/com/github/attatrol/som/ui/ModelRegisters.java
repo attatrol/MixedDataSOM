@@ -22,6 +22,9 @@ import com.github.attatrol.som.som.neuron.ResettingFuzzyNeuron;
 import com.github.attatrol.som.som.topology.RectangleTopology;
 import com.github.attatrol.som.som.topology.RectangleTopologyFactory;
 import com.github.attatrol.som.som.topology.ToroidalTopology;
+import com.github.attatrol.som.ui.utils.benchmarkfactories.BenchmarkUiFactory;
+import com.github.attatrol.som.ui.utils.benchmarkfactories.CalinskiHarabaszIndexFactory;
+import com.github.attatrol.som.ui.utils.benchmarkfactories.TrivialReferenceColumnBenchmarkFactory;
 
 /**
  * All observable lists of UI are filled with this collections.
@@ -74,6 +77,14 @@ final class ModelRegisters {
         FUZZY_NEURON_FACTORIES = Collections.unmodifiableList(set);
     }
 
+    public static final List<BenchmarkUiFactory> BENCHMARK_FACTORIES;
+    static {
+        List<BenchmarkUiFactory> set = new ArrayList<>();
+        set.add(new CalinskiHarabaszIndexFactory());
+        set.add(new TrivialReferenceColumnBenchmarkFactory());
+        BENCHMARK_FACTORIES = Collections.unmodifiableList(set);
+    }
+    
     private ModelRegisters(){}
 
 }

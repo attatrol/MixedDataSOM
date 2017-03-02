@@ -175,6 +175,21 @@ public class ResultPane extends GridPane {
     }
 
     /**
+     * Getter for a column name.
+     * @param i column index (Index column omitting)
+     * @param titles original titles set
+     * @return title for a current column
+     */
+    public static String getColumnName(int i, String[] titles) {
+        if (titles != null && titles.length > i && titles[i] != null) {
+            return titles[i];
+        }
+        else {
+            return TokenDataSourceTableView.getStubColumnName(i);
+        }
+    }
+
+    /**
      * Places tiles onto tile pane.
      * @param tilePane tile pane
      * @param tiles tiles
@@ -611,11 +626,11 @@ public class ResultPane extends GridPane {
                         ColorScheme scheme = null;
                         if (SampleFrequencyCalculator.isCategoricalTokenType(tokenTypes[i])) {
                             scheme = new CategoricalColorScheme(tiles, tokenColorsByFrequency[i],
-                                    tileFrequencies[i], getColorSchemeName(i, titles));
+                                    tileFrequencies[i], getColumnName(i, titles));
                         }
                         else if (SampleFrequencyCalculator.isNumericalTokenType(tokenTypes[i])) {
                             scheme = new NumericalColorScheme(tiles, i, bounds[i].getMin(),
-                                    bounds[i].getMax(), tokenTypes[i], getColorSchemeName(i, titles));
+                                    bounds[i].getMax(), tokenTypes[i], getColumnName(i, titles));
                         }
                         if (scheme != null) {
                             schemes.add(scheme);
@@ -650,15 +665,6 @@ public class ResultPane extends GridPane {
                 }
             }
             return tileFrequencies;
-        }
-
-        private String getColorSchemeName(int i, String[] titles) {
-            if (titles != null && titles.length > i && titles[i] != null) {
-                return titles[i];
-            }
-            else {
-                return TokenDataSourceTableView.getStubColumnName(i);
-            }
         }
     }
 }
