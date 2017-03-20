@@ -36,7 +36,8 @@ public class RandomWeightsInitializer implements SomInitializer {
     public synchronized Som createSom(TokenDataSourceAndMisc tdsm,
             DistanceFunction distanceFunction, SomTopology topology,
             NeighborhoodFunction neighborhoodFunction, LearningFunction learningFunction,
-            FuzzyNeuronFactory<?> neuronFactory, double winnerHandicapFactor)
+            FuzzyNeuronFactory<?> neuronFactory, double overMedianWeakFactor,
+            double overMedianStrongFactor)
             throws IOException {
         final TokenType[] tokenTypes = tdsm.getTokenTypes();
         final AbstractTokenDataSource<?> dataSource = tdsm.getTokenDataSource();
@@ -56,7 +57,7 @@ public class RandomWeightsInitializer implements SomInitializer {
         }
         final long dataSourceSize = SampleFrequencyCalculator.getDataSourceSize(dataSource);
         return new Som(neurons, topology, dataSource, distanceFunction, neighborhoodFunction,
-                learningFunction, winnerHandicapFactor, dataSourceSize);
+                learningFunction, dataSourceSize, overMedianWeakFactor, overMedianStrongFactor);
     }
 
     /**

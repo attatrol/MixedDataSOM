@@ -18,7 +18,7 @@ public abstract class AbstractNeuron {
     /**
      * Topological position of the neuron.
      */
-    protected Point position;
+    protected final Point position;
 
     /**
      * Token types of the weights, not subject of change.
@@ -26,10 +26,10 @@ public abstract class AbstractNeuron {
     protected TokenType[] tokenTypes;
 
     /**
-     * Sinple value ctor.
-     * @param weights
-     * @param position
-     * @param tokenTypes
+     * Simple value ctor.
+     * @param weights starting weights of a neuron
+     * @param position topological position of a neuron
+     * @param tokenTypes weights token types
      */
     public AbstractNeuron(Object[] weights, Point position, TokenType[] tokenTypes) {
         this.weights = weights;
@@ -37,13 +37,25 @@ public abstract class AbstractNeuron {
         this.tokenTypes = tokenTypes;
     }
 
+    /**
+     * @return position of neuron
+     */
     public Point getPosition() {
         return position;
     }
 
+    /**
+     * @return weights of the neuron
+     */
     public Object[] getWeights() {
         return weights;
-    } 
+    }
+
+    /**
+     * Swaps weights of 2 neurons.
+     * @param other other neuron
+     */
+    public abstract void swapWeights(AbstractNeuron other);
 
     /**
      * Main procedure of a learning cycle.
@@ -57,6 +69,12 @@ public abstract class AbstractNeuron {
      * Tells neuron that the epoch has ended.
      */
     public abstract void markEpochEnd();
+
+    /**
+     * Assigns new weights to the neuron.
+     * @param newWeights new weights values
+     */
+    public abstract void setNewWeights(Object[] newWeights);
 
     /**
      * Neurons are mapped 1-to-1 to their position, so return

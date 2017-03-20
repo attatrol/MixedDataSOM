@@ -14,15 +14,6 @@ import javafx.scene.chart.XYChart;
  */
 class AvgErrorChart extends LineChart<Number, Number> {
 
-    /**
-     * Y axis is constant as error is bounded in [0, 1]
-     */
-    private static final NumberAxis Y_AXIS = new NumberAxis(0., 1., .02);
-    static {
-        Y_AXIS.setLabel(SomI18nProvider.INSTANCE.getValue("main.chart.yaxis.label"));
-        Y_AXIS.setForceZeroInRange(false);
-    }
-
     private final int epochNumber;
 
     /**
@@ -35,7 +26,7 @@ class AvgErrorChart extends LineChart<Number, Number> {
      * @param epochNumber total number of epochs.
      */
     public AvgErrorChart(int epochNumber) {
-        super(new NumberAxis(1, epochNumber, 1.), Y_AXIS);
+        super(new NumberAxis(1, epochNumber, 1.), new NumberAxis(0., 1., .05));
         this.epochNumber = epochNumber;
         epochsInTick = ((double) epochNumber)
                 / SetupSomPane.CHART_NUMBER_OF_POINTS < 1.
@@ -44,10 +35,14 @@ class AvgErrorChart extends LineChart<Number, Number> {
         setCreateSymbols(true);
         setAnimated(false);
         setLegendVisible(true);
+        setCreateSymbols(false);
         NumberAxis xAxis = (NumberAxis) getXAxis();
         xAxis.setLabel(SomI18nProvider.INSTANCE.getValue("main.chart.xaxis.label"));
         xAxis.setForceZeroInRange(false);
         xAxis.setTickUnit(epochsInTick);
+        NumberAxis yAxis = (NumberAxis) getYAxis();
+        yAxis.setLabel(SomI18nProvider.INSTANCE.getValue("main.chart.yaxis.label"));
+        yAxis.setForceZeroInRange(false);
         this.setTitle(SomI18nProvider.INSTANCE.getValue("main.chart.label"));
     }
 

@@ -16,8 +16,7 @@ class LearnSomButton extends Button {
         super(SomI18nProvider.INSTANCE.getValue("main.button.learn.som"));
         setOnAction(ev -> {
             form.setInternalState(SetupFormState.SOM_LEARNING_IN_PROGRESS_7);
-            final Thread learningThread = new Thread(form.getSomComponents()
-                    .getLastCreatedSomMode().getLearningProcess(form));
+            final Thread learningThread = new Thread(SomMode.EPOCH_NUMBER_SET.getLearningProcess(form));
             learningThread.setDaemon(true);
             learningThread.start();
         });

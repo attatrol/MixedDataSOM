@@ -38,8 +38,10 @@ public interface SomInitializer {
      *        learning function of SOM
      * @param neuronFactory
      *        factory for a certain neuron type
-     * @param winnerHandicapFactor
-     *        defines how severe will be a distance handicap for often winning neurons
+     * @param overMedianWeakFactor
+     *        defines upper size threshold of a weak neurons
+     * @param overMedianStrongFactor
+     *        defines lower size threshold of strong neurons
      * @return SOM instance
      * @throws IOException
      *         on internal i/o data source error
@@ -47,7 +49,7 @@ public interface SomInitializer {
     Som createSom(TokenDataSourceAndMisc tdsm, DistanceFunction distanceFunction,
             SomTopology topology, NeighborhoodFunction neighborhoodFunction,
             LearningFunction learningFunction, FuzzyNeuronFactory<?> neuronFactory,
-            double winnerHandicapFactor) throws IOException;
+            double overMedianWeakFactor, double overMedianStrongFactor) throws IOException;
 
     /**
      * Checks if data source is non empty, then calls
@@ -63,6 +65,12 @@ public interface SomInitializer {
      *        neighborhood function of SOM
      * @param learningFunction
      *        learning function of SOM
+     * @param neuronFactory
+     *        factory for a certain neuron type
+     * @param overMedianWeakFactor
+     *        defines upper size threshold of a weak neurons
+     * @param overMedianStrongFactor
+     *        defines lower size threshold of strong neurons
      * @return SOM instance
      * @throws IOException
      *         on internal i/o data source error
@@ -72,12 +80,12 @@ public interface SomInitializer {
     default Som checkDataSourceAndCreateSom(TokenDataSourceAndMisc tdsm,
             DistanceFunction distanceFunction, SomTopology topology,
             NeighborhoodFunction neighborhoodFunction, LearningFunction learningFunction,
-            FuzzyNeuronFactory<?> neuronFactory, double winnerHandicapFactor)
-            throws IOException, IllegalStateException {
+            FuzzyNeuronFactory<?> neuronFactory, double overMedianWeakFactor,
+            double overMedianStrongFactor) throws IOException, IllegalStateException {
         tdsm.getTokenDataSource().reset();
         if (tdsm.getTokenDataSource().hasNext()) {
             return createSom(tdsm, distanceFunction, topology, neighborhoodFunction,
-                    learningFunction, neuronFactory, winnerHandicapFactor);
+                    learningFunction, neuronFactory, overMedianWeakFactor, overMedianStrongFactor);
         }
         else {
             throw new IllegalStateException("Empty data source is not allowed!");

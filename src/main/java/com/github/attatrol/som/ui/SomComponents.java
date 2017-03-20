@@ -13,7 +13,7 @@ import com.github.attatrol.som.som.neuron.FuzzyNeuronFactory;
 import com.github.attatrol.som.som.topology.RectangleTopologyFactory;
 
 /**
- * Here components of SOM to be created are stored. And some additional data also stored here.
+ * Components and parameters of SOM to be created are stored here.
  * Actually it is a state of UI.
  * 
  * @author atta_troll
@@ -39,25 +39,19 @@ class SomComponents {
 
     private int numberOfEpochs;
 
-    private double desiredAverageError;
-
     private int rectangleWidth;
 
     private int rectangleHeight;
 
-    private double winnerLoweringFactor;
+    private double overMedianWeakFactor;
 
-    private SomMode chosenSomMode;
+    private double overMedianStrongFactor;
 
     private int lastCreatedNumberOfEpochs;
-
-    private double lastCreatedDesiredAverageError;
 
     private int lastCreatedRectangleWidth;
 
     private int lastCreatedRectangleHeight;
-
-    private SomMode lastCreatedSomMode;
 
     /**
      * Flag, used to determine if learning process should be stopped.
@@ -137,14 +131,6 @@ class SomComponents {
         this.numberOfEpochs = expectedNumberOfEpochs;
     }
 
-    public double getDesiredAverageError() {
-        return desiredAverageError;
-    }
-
-    public void setDesiredAverageError(double desiredAverageError) {
-        this.desiredAverageError = desiredAverageError;
-    }
-
     public int getRectangleWidth() {
         return rectangleWidth;
     }
@@ -161,12 +147,20 @@ class SomComponents {
         this.rectangleHeight = rectangleHeight;
     }
 
-    public double getWinnerLoweringFactor() {
-        return winnerLoweringFactor;
+    public double getOverMedianWeakFactor() {
+        return overMedianWeakFactor;
     }
 
-    public void setWinnerLoweringFactor(double winnerLoweringFactor) {
-        this.winnerLoweringFactor = winnerLoweringFactor;
+    public void setOverMedianWeakFactor(double overMedianWeakFactor) {
+        this.overMedianWeakFactor = overMedianWeakFactor;
+    }
+
+    public double getOverMedianStrongFactor() {
+        return overMedianStrongFactor;
+    }
+
+    public void setOverMedianStrongFactor(double overMedianStrongFactor) {
+        this.overMedianStrongFactor = overMedianStrongFactor;
     }
 
     public boolean isLearnSomAbortFlag() {
@@ -177,20 +171,8 @@ class SomComponents {
         this.learnSomAbortFlag = learnSomAbortFlag;
     }
 
-    public SomMode getChosenSomMode() {
-        return chosenSomMode;
-    }
-
-    public void setChosenSomMode(SomMode chosenSomMode) {
-        this.chosenSomMode = chosenSomMode;
-    }
-
     public int getLastCreatedNumberOfEpochs() {
         return lastCreatedNumberOfEpochs;
-    }
-
-    public double getLastCreatedDesiredAverageError() {
-        return lastCreatedDesiredAverageError;
     }
 
     public int getLastCreatedRectangleWidth() {
@@ -199,10 +181,6 @@ class SomComponents {
 
     public int getLastCreatedRectangleHeight() {
         return lastCreatedRectangleHeight;
-    }
-
-    public SomMode getLastCreatedSomMode() {
-        return lastCreatedSomMode;
     }
 
     /**
@@ -227,10 +205,6 @@ class SomComponents {
         somInitializer = null;
         fuzzyNeuronFactory = null;
         som = null;
-        // we have to setup this as control check box may not fire
-        // change event
-        chosenSomMode = SomMode.EPOCH_NUMBER_SET;
-        lastCreatedSomMode = null;
     }
 
     /**
@@ -240,10 +214,7 @@ class SomComponents {
      */
     public void registerLastCreatedSomParameters() {
         lastCreatedNumberOfEpochs = numberOfEpochs;;
-        lastCreatedDesiredAverageError = desiredAverageError;
         lastCreatedRectangleWidth = rectangleWidth;
         lastCreatedRectangleHeight = rectangleHeight;
-        lastCreatedSomMode = chosenSomMode;
-
     }
 }

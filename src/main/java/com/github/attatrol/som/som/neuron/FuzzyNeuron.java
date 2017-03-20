@@ -18,19 +18,16 @@ public class FuzzyNeuron extends AbstractNeuron {
 
     protected final static double INITIAL_CATEGORICAL_WEIGHT = 1.5;
 
-    protected final double[] weightsPower;
+    protected double[] weightsPower;
 
     protected Map<Object, Double>[] weightFuzzySets;
 
-    protected final Map<Object, Double>[] sampleFrequencies;
+    protected Map<Object, Double>[] sampleFrequencies;
 
     @SuppressWarnings("unchecked")
     public FuzzyNeuron(Object[] initialWeights, Point position, TokenType[] tokenTypes,
             Map<Object, Double>[] sampleFrequencies) {
         super(initialWeights, position, tokenTypes);
-        weights = initialWeights;
-        this.position = position;
-        this.tokenTypes = tokenTypes;
         this.sampleFrequencies = sampleFrequencies;
         weightFuzzySets = new Map[tokenTypes.length];
         weightsPower = new double[tokenTypes.length];
@@ -43,6 +40,31 @@ public class FuzzyNeuron extends AbstractNeuron {
             else if (tokenTypes[i] == TokenType.INTEGER) {
                 weightsPower[i] = (Integer) weights[i];
             }
+        }
+    }
+
+    @Override
+    public void swapWeights(AbstractNeuron other) {
+        if (other instanceof FuzzyNeuron) {
+            FuzzyNeuron fuzzyOther = (FuzzyNeuron) other;
+            Object[] tempWeights = weights;
+            double[] tempWeightsPower = weightsPower;
+            Map<Object, Double>[] tempWeightFuzzySets = weightFuzzySets;
+            Map<Object, Double>[] tempSampleFrequencies = sampleFrequencies;
+            TokenType[] tempTokenTypes = tokenTypes;
+            weights = fuzzyOther.weights;
+            weightsPower = fuzzyOther.weightsPower;
+            weightFuzzySets = fuzzyOther.weightFuzzySets;
+            sampleFrequencies = fuzzyOther.sampleFrequencies;
+            tokenTypes = fuzzyOther.tokenTypes;
+            fuzzyOther.weights = tempWeights;
+            fuzzyOther.weightsPower = tempWeightsPower;
+            fuzzyOther.weightFuzzySets = tempWeightFuzzySets;
+            fuzzyOther.sampleFrequencies = tempSampleFrequencies;
+            fuzzyOther.tokenTypes = tempTokenTypes;
+        }
+        else {
+            throw new IllegalArgumentException("Swapping weights of incompatible neurons");
         }
     }
 
@@ -86,6 +108,21 @@ public class FuzzyNeuron extends AbstractNeuron {
     public void markEpochEnd() {
     }
 
+    @Override
+    public void setNewWeights(Object[] newWeights) {
+        weights = newWeights;
+        for (int i = 0; i < tokenTypes.length; i++) {
+            if (tokenTypes[i] != TokenType.FLOAT && tokenTypes[i] != TokenType.INTEGER) {
+                weightFuzzySets[i].clear();
+                weightFuzzySets[i].put(weights[i], INITIAL_CATEGORICAL_WEIGHT);
+                weightsPower[i] = INITIAL_CATEGORICAL_WEIGHT;
+            }
+            else if (tokenTypes[i] == TokenType.INTEGER) {
+                weightsPower[i] = (Integer) weights[i];
+            }
+        }
+    }
+
     protected double calculateIncomingTokenPower(Object newWeight, int index, double diminishingFactor,
             boolean isBmu) {
         Double value = weightFuzzySets[index].get(newWeight);
@@ -109,4 +146,5 @@ public class FuzzyNeuron extends AbstractNeuron {
             return new FuzzyNeuron(initialWeights, position, tokenTypes, sampleFrequencies);
         }
     }
+
 }

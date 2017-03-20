@@ -47,24 +47,6 @@ enum SomMode {
             return new EpochCounterLearningProcess(form);
         }
 
-    },
-    /**
-     * User defined desired average error threshold, this means that learning and neighborhood
-     * functions will be generated without any info about number of epochs, and and of learning
-     * process is defined by reaching this error threshold.
-     */
-    AVERAGE_ERROR_SET {
-
-        @Override
-        public Runnable getСreationProcess(SetupSomPane form) {
-            return new UnknownEpochNumberSomCreationProcess(form);
-        }
-
-        @Override
-        public Runnable getLearningProcess(SetupSomPane form) {
-            return new AverageErrorThresholdLearningProcess(form);
-        }
-
     };
 
     /**
@@ -138,6 +120,10 @@ enum SomMode {
             throw new IllegalArgumentException(
                     SomI18nProvider.INSTANCE.getValue("ui.exception.topology.missing"));
         }
+        if (somData.getOverMedianStrongFactor() <= somData.getOverMedianWeakFactor()) {
+            throw new IllegalArgumentException(
+                    SomI18nProvider.INSTANCE.getValue("ui.exception.median.factors.intersection"));
+        }
     }
 
     /**
@@ -183,11 +169,12 @@ enum SomMode {
                 final LearningFunction learningFunction =
                         somData.getLearningFunctionFactory().produceLearningFunction(epochNumber);
                 final FuzzyNeuronFactory<?> neuronFactory = somData.getFuzzyNeuronFactory();
-                final double winnerHandicapFactor = somData.getWinnerLoweringFactor();
+                final double overMedianWeakFactor = somData.getOverMedianWeakFactor();
+                final double overMedianStrongFactor = somData.getOverMedianStrongFactor();
                 final SomInitializer somInitializer = somData.getSomInitializer();
                 final Som som = somInitializer.checkDataSourceAndCreateSom(somData.getTdsm(),
                         somData.getDistanceFunction(), topology, neighborhoodFunction,
-                        learningFunction, neuronFactory, winnerHandicapFactor);
+                        learningFunction, neuronFactory, overMedianWeakFactor, overMedianStrongFactor);
                 somData.setSom(som);
                 Platform.runLater(() -> form.setInternalState(SetupFormState.SOM_CREATED_6));
             }
@@ -213,63 +200,7 @@ enum SomMode {
 
     }
 
-    /**
-     * SOM creation process in case if epoch number is unknown.
-     * @author atta_troll
-     *
-     */
-    private class UnknownEpochNumberSomCreationProcess implements Runnable {
 
-        private SetupSomPane form;
-
-        public UnknownEpochNumberSomCreationProcess(SetupSomPane form) {
-            this.form = form;
-        }
-
-        @Override
-        public void run() {
-            try {
-                final SomComponents somData = form.getSomComponents();
-                checkSomComponents(somData);
-                final int width = somData.getRectangleWidth();
-                final int height = somData.getRectangleHeight();
-                final SomTopology topology = somData.getTopologyFactory().createTopology(width,
-                        height, new EuclideanMetric());
-                final NeighborhoodFunction neighborhoodFunction =
-                        somData.getNeighborhoodFunctionFactory()
-                                .produceNeighborhoodFunction(width * height);
-                final LearningFunction learningFunction =
-                        somData.getLearningFunctionFactory().produceLearningFunction();
-                final FuzzyNeuronFactory<?> neuronFactory = somData.getFuzzyNeuronFactory();
-                final double winnerHandicapFactor = somData.getWinnerLoweringFactor();
-                final SomInitializer somInitializer = somData.getSomInitializer();
-
-                final Som som = somInitializer.checkDataSourceAndCreateSom(somData.getTdsm(),
-                        somData.getDistanceFunction(), topology, neighborhoodFunction,
-                        learningFunction, neuronFactory, winnerHandicapFactor);
-                somData.setSom(som);
-                Platform.runLater(() -> form.setInternalState(SetupFormState.SOM_CREATED_6));
-            }
-            catch (IllegalStateException | IOException ex) {
-                Platform.runLater(() -> {
-                    form.setInternalState(SetupFormState.SOM_CREATION_ERROR);
-                    UiUtils.showExceptionMessage(ex);
-                });
-            }
-            catch (IllegalArgumentException ex) {
-                Platform.runLater(() -> {
-                    form.setInternalState(SetupFormState.DISTANCE_FUNCTION_SET_4);
-                    UiUtils.showExceptionMessage(ex);
-                });
-            }
-            catch (Exception ex) {
-                Platform.runLater(() -> {
-                    form.setInternalState(SetupFormState.UNKNOWN_ERROR);
-                    UiUtils.showExceptionMessage(ex);
-                });
-            }
-        }
-    }
 
     /**
      * Learning process that lasts for a defined number of epochs.
@@ -301,56 +232,6 @@ enum SomMode {
                             //epochCounter, avgError));
                     //System.out.println(som);
                 }
-                chartFiller.dumpResidualToChart();
-                Platform.runLater(() -> form.setInternalState(SetupFormState.SOM_COMPLETED_8));
-            }
-            catch (IOException ex) {
-                Platform.runLater(() -> {
-                    form.setInternalState(SetupFormState.SOM_LEARNING_ERROR);
-                    UiUtils.showExceptionMessage(ex);
-                });
-            }
-            catch (Exception ex) {
-                Platform.runLater(() -> {
-                    form.setInternalState(SetupFormState.UNKNOWN_ERROR);
-                    UiUtils.showExceptionMessage(ex);
-                });
-            }
-        }
-    }
-
-    /**
-     * Learning process that stops when a defined threshold of average error is reached.
-     * @author atta_troll
-     *
-     */
-    private static class AverageErrorThresholdLearningProcess implements Runnable {
-
-        private SetupSomPane form;
-
-        public AverageErrorThresholdLearningProcess(SetupSomPane form) {
-            this.form = form;
-        }
-
-        @Override
-        public void run() {
-            final SomComponents somData = form.getSomComponents();
-            final Som som = somData.getSom();
-            somData.setLearnSomAbortFlag(false);
-            final double desiredAngError = somData.getLastCreatedDesiredAverageError();
-            final double chartEndEpoch = somData.getLastCreatedNumberOfEpochs();
-            int epochCounter = 0;
-            double currentAvgError = 0;
-            final AvgErrorChart.ChartFiller chartFiller = form.getNewChartFiller();
-            try {
-                do {
-                    ++epochCounter;
-                    currentAvgError = som.learnEpoch(epochCounter);
-                    if (epochCounter <= chartEndEpoch) {
-                        chartFiller.registerEpoch(currentAvgError);
-                    }
-                }
-                while (currentAvgError > desiredAngError && !somData.isLearnSomAbortFlag());
                 chartFiller.dumpResidualToChart();
                 Platform.runLater(() -> form.setInternalState(SetupFormState.SOM_COMPLETED_8));
             }

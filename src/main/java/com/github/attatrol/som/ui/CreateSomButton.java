@@ -21,8 +21,7 @@ class CreateSomButton extends Button {
         super(SomI18nProvider.INSTANCE.getValue("main.button.create.som"));
         setOnAction(ev -> {
             form.setInternalState(SetupFormState.SOM_CREATION_IN_PROGRESS_5);
-            Thread creationThread = new Thread(form.getSomComponents()
-                    .getChosenSomMode().getСreationProcess(form));
+            Thread creationThread = new Thread(SomMode.EPOCH_NUMBER_SET.getСreationProcess(form));
             creationThread.setDaemon(true);
             creationThread.start();
         });

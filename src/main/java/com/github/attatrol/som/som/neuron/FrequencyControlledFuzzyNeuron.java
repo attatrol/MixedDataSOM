@@ -7,7 +7,7 @@ import com.github.attatrol.som.som.topology.Point;
 
 public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
 
-    protected final double[] fuzzyWeightSum;
+    protected double[] fuzzyWeightSum;
 
     public FrequencyControlledFuzzyNeuron(Object[] initialWeights, Point position,
             TokenType[] tokenTypes, Map<Object, Double>[] sampleFrequencies) {
@@ -15,6 +15,21 @@ public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
         fuzzyWeightSum = new double[tokenTypes.length];
         for (int i = 0; i < tokenTypes.length; i++) {
             fuzzyWeightSum[i] = FuzzyNeuron.INITIAL_CATEGORICAL_WEIGHT;
+        }
+    }
+
+    @Override
+    public void swapWeights(AbstractNeuron other) {
+        if (other instanceof FrequencyControlledFuzzyNeuron) {
+            super.swapWeights(other);
+            FrequencyControlledFuzzyNeuron fcfOther =
+                    (FrequencyControlledFuzzyNeuron) other;
+            double[] tempFuzzyWeightSum = fuzzyWeightSum;
+            fuzzyWeightSum = fcfOther.fuzzyWeightSum;
+            fcfOther.fuzzyWeightSum = tempFuzzyWeightSum;
+        }
+        else {
+            throw new IllegalArgumentException("Swapping weights of incompatible neurons");
         }
     }
 

@@ -32,7 +32,7 @@ public class RandomRecordsInitializer implements SomInitializer {
     public synchronized Som createSom(TokenDataSourceAndMisc tdsm, DistanceFunction distanceFunction,
             SomTopology topology, NeighborhoodFunction neighborhoodFunction,
             LearningFunction learningFunction, FuzzyNeuronFactory<?> neuronFactory,
-            double winnerHandicapFactor) throws IOException {
+            double overMedianWeakFactor, double overMedianStrongFactor) throws IOException {
         final AbstractTokenDataSource<?> dataSource = tdsm.getTokenDataSource();
         final long numberOfRecords = getNumberOfRecords(dataSource);
         final List<Point> neuronPositions = topology.getNeuronPositions();
@@ -46,7 +46,8 @@ public class RandomRecordsInitializer implements SomInitializer {
         }
         final long dataSourceSize = SampleFrequencyCalculator.getDataSourceSize(dataSource);
         return new Som(neurons, topology, dataSource, distanceFunction,
-                neighborhoodFunction, learningFunction, winnerHandicapFactor, dataSourceSize);
+                neighborhoodFunction, learningFunction, dataSourceSize, overMedianWeakFactor,
+                overMedianStrongFactor);
     }
 
     /**

@@ -18,7 +18,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -163,42 +162,23 @@ public class SetupSomPane extends BorderPane {
     }
 
     /**
-     * desired average error level input text field.
+     * Weak neuron upper size threshold text field.
      */
-    private PositiveDoubleParsingTextField averageErrorTextField =
+    private PositiveDoubleParsingTextField overMedianWeakFactorTextField =
             new PositiveDoubleParsingTextField();
     {
-        averageErrorTextField.getValueProperty().addListener(
-                (observable, oldValue,newValue) -> somData.setDesiredAverageError(newValue));
+        overMedianWeakFactorTextField.getValueProperty().addListener(
+                (observable, oldValue,newValue) -> somData.setOverMedianWeakFactor(newValue));
     }
 
     /**
-     * desired average error level input text field.
+     * Weak neuron upper size threshold text field.
      */
-    private PositiveDoubleParsingTextField winnerLoweringFactorTextField =
+    private PositiveDoubleParsingTextField overMedianStrongFactorTextField =
             new PositiveDoubleParsingTextField();
     {
-        winnerLoweringFactorTextField.getValueProperty().addListener(
-                (observable, oldValue,newValue) -> somData.setWinnerLoweringFactor(newValue));
-    }
-
-    /**
-     * Check box that switches rules that define trained SOM during learning process.
-     */
-    private CheckBox learningRegimesSwitchCheckBox = new CheckBox(
-            SomI18nProvider.INSTANCE.getValue("main.checkbox.switch.learning.modes"));
-    {
-        learningRegimesSwitchCheckBox.selectedProperty().addListener(
-                (observable, oldValue,newValue) -> {
-            epochNumberTextField.setDisable(newValue);
-            averageErrorTextField.setDisable(!newValue);
-            if (newValue) {
-                somData.setChosenSomMode(SomMode.AVERAGE_ERROR_SET);
-            }
-            else {
-                somData.setChosenSomMode(SomMode.EPOCH_NUMBER_SET);
-            }
-        });
+        overMedianStrongFactorTextField.getValueProperty().addListener(
+                (observable, oldValue,newValue) -> somData.setOverMedianStrongFactor(newValue));
     }
 
     private ComboBox<RectangleTopologyFactory<?>> rectangleTopologyFactoryComboBox =
@@ -274,13 +254,12 @@ public class SetupSomPane extends BorderPane {
                 widthTextField,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.height")),
                 heightTextField,
-                learningRegimesSwitchCheckBox,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.epoch")),
                 epochNumberTextField,
-                new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.avgerror")),
-                averageErrorTextField,
-                new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.patronage")),
-                winnerLoweringFactorTextField,
+                new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.weak.neuron.threshold")),
+                overMedianWeakFactorTextField,
+                new Label(SomI18nProvider.INSTANCE.getValue("main.label.enter.strong.neuron.threshold")),
+                overMedianStrongFactorTextField,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.choose.topology")),
                 rectangleTopologyFactoryComboBox,
                 new Label(SomI18nProvider.INSTANCE.getValue("main.label.choose.learning")),
@@ -366,11 +345,10 @@ public class SetupSomPane extends BorderPane {
                 removeChart(form);
                 form.somData.erase();
                 form.epochNumberTextField.setTextAndValue(1000);
-                form.averageErrorTextField.setTextAndValue(0.1);
-                form.learningRegimesSwitchCheckBox.setSelected(false);
                 form.heightTextField.setTextAndValue(5);
                 form.widthTextField.setTextAndValue(5);
-                form.winnerLoweringFactorTextField.setTextAndValue(0.);
+                form.overMedianWeakFactorTextField.setTextAndValue(0.);
+                form.overMedianStrongFactorTextField.setTextAndValue(2.);
                 form.rectangleTopologyFactoryComboBox.getSelectionModel().clearSelection();
                 form.learningFunctionFactoryComboBox.getSelectionModel().clearSelection();
                 form.neighborhoodFunctionFactoryComboBox.getSelectionModel().clearSelection();
@@ -448,13 +426,13 @@ public class SetupSomPane extends BorderPane {
         RESULT_FORM_CRREATION_IN_PROGRESS_9(SomI18nProvider.INSTANCE.getValue("main.state.9")) {
             @Override
             public void applyState(SetupSomPane form) {
-                disableControls(form, true, true, true, true, true, true, false, false);
+                disableControls(form, true, true, true, true, true, true, true, false);
             }
         },
         BENCHMARK_IN_PROGRESS_10(SomI18nProvider.INSTANCE.getValue("main.state.10")) {
             @Override
             public void applyState(SetupSomPane form) {
-                disableControls(form, true, true, true, true, true, true, false, false);
+                disableControls(form, true, true, true, true, true, true, true, false);
             }
         },
         SOM_CREATION_ERROR(SomI18nProvider.INSTANCE.getValue("main.state.error.som.creation")) {
@@ -510,14 +488,11 @@ public class SetupSomPane extends BorderPane {
                 boolean plotDisabled) {
             form.setDataSourceButton.setDisable(setDataSourceButtonDisabled);
             form.setDistanceFunctionButton.setDisable(setDistanceFunctionButtonDisabled);
-            form.learningRegimesSwitchCheckBox.setDisable(createSomButtonDisabled);
-            form.averageErrorTextField.setDisable(createSomButtonDisabled
-                    || !form.learningRegimesSwitchCheckBox.isSelected());
-            form.epochNumberTextField.setDisable(createSomButtonDisabled
-                    || form.learningRegimesSwitchCheckBox.isSelected());
+            form.epochNumberTextField.setDisable(createSomButtonDisabled);
             form.heightTextField.setDisable(createSomButtonDisabled);
             form.widthTextField.setDisable(createSomButtonDisabled);
-            form.winnerLoweringFactorTextField.setDisable(createSomButtonDisabled);
+            form.overMedianWeakFactorTextField.setDisable(createSomButtonDisabled);
+            form.overMedianStrongFactorTextField.setDisable(createSomButtonDisabled);
             form.learningFunctionFactoryComboBox.setDisable(createSomButtonDisabled);
             form.neighborhoodFunctionFactoryComboBox.setDisable(createSomButtonDisabled);
             form.rectangleTopologyFactoryComboBox.setDisable(createSomButtonDisabled);
