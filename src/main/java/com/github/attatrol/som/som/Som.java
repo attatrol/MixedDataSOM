@@ -26,7 +26,7 @@ import com.github.attatrol.som.som.topology.SomTopology;
  */
 public class Som {
 
-    private static final double LOCAL_NEIGHBORHOOD_RADIUS = 1.01;
+    private static final double LOCAL_NEIGHBORHOOD_RADIUS = 1.99;
 
     private final SomTopology topology;
 

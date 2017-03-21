@@ -77,7 +77,7 @@ public class FuzzyNeuron extends AbstractNeuron {
                 break;
             case INTEGER:
                 weightsPower[i] += diminishingFactor * ((Integer) newWeights[i] - weightsPower[i]);
-                weights[i] = (int) weightsPower[i];
+                weights[i] = (int) Math.round(weightsPower[i]);
                 break;
             case BINARY:
             case BINARY_DIGITAL:
