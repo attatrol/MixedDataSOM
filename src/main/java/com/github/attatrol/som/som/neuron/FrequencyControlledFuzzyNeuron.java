@@ -66,7 +66,6 @@ public class FrequencyControlledFuzzyNeuron extends FuzzyNeuron {
                 else if (incomingValuePower > weightsPower[i]) {
                     weightsPower[i] = incomingValuePower;
                     weights[i] = newWeights[i];
-                    System.out.println("Change!");
                 }
                 break;
             default:

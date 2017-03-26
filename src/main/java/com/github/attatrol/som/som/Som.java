@@ -91,13 +91,12 @@ public class Som {
      */
     public double learnEpoch(int epochNumber) throws IOException {
         final Map<Double, Double> speedFactorMap = calculateSpeedFactorMap(epochNumber);
-        // updatePatronageIndexes();
         devourWeakNeurons();
         distantRecords.clear();
         for (AbstractNeuron neuron : neurons) {
             winCount.put(neuron, 0L);
         }
-        System.out.println("Epoch");
+        System.out.println(String.format("Epoch %d", epochNumber));
         double errorSum = 0.;
         long counter = 0L;
         dataSource.reset();
@@ -110,7 +109,7 @@ public class Som {
         }
         
         final double avgError = errorSum / counter;
-        System.out.println(avgError + " " + counter);
+        System.out.println(String.format("Avg. error: %f, counter: %d", avgError, counter));
         return avgError;
     }
 
@@ -167,7 +166,9 @@ public class Som {
                 patrons.put(winCount, entry.getKey());
             }
         }
-        // 2. pairing patrons to the closest empty neurons
+        System.out.println(String.format("Weak count: %d Strong count %d",
+                weakNeurons.size(), patrons.size()));
+        // 2. pairing patrons to the closest weak neurons
         List<AbstractNeuron> patronList = new ArrayList<>();
         List<AbstractNeuron> patronedList = new ArrayList<>();
         for (Map.Entry<Long, AbstractNeuron> entry : patrons.entrySet()) {
@@ -179,23 +180,18 @@ public class Som {
                 AbstractNeuron closestEmptyNeuron = iterator.next();
                 double minDistance = topology.getDistance(patron.getPosition(), closestEmptyNeuron.getPosition());
                 while (iterator.hasNext()) {
-                    final AbstractNeuron emptyNeuron = iterator.next();
-                    final double distance = topology.getDistance(patron.getPosition(), emptyNeuron.getPosition());
+                    final AbstractNeuron weakNeuron = iterator.next();
+                    final double distance = topology.getDistance(patron.getPosition(), weakNeuron.getPosition());
                     if (distance < minDistance) {
                         minDistance = distance;
-                        closestEmptyNeuron = emptyNeuron;
+                        closestEmptyNeuron = weakNeuron;
                     }
                 }
                 patronList.add(patron);
                 patronedList.add(closestEmptyNeuron);
             }
         }
-        for (AbstractNeuron patron : patronList) {
-            if (distantRecords.get(patron) == null) {
-                System.out.println("Very bad!");
-            }
-        }
-        // 3. finding path from empty neurons to the patron's local neighborhood
+        // 3. finding path from weak neurons to the patron's local neighborhood
         // (greedy algorithm)
         for (int j = 0; j < patronList.size(); j++) {
             final AbstractNeuron patron = patronList.get(j);
@@ -217,7 +213,7 @@ public class Som {
                 }
                 current = pathNeuron;
             }
-            // 4. propagation of empty neuron towards patron
+            // 4. propagation of weak neuron towards patron
             for (int i = 0; i < path.size() - 1; i++) {
                 AbstractNeuron swap1 = path.get(i);
                 AbstractNeuron swap2 = path.get(i + 1);
@@ -236,7 +232,6 @@ public class Som {
                         patronedList.set(k, swap1);
                     }
                     if (patronSwap) {
-                        System.out.println(String.format("patron swap %s - %s", swap1, swap2));
                         final Object[] distant1 = distantRecords.get(swap1);
                         final Object[] distant2 = distantRecords.get(swap2);
                         if (distant1 != null) {
@@ -249,11 +244,8 @@ public class Som {
                 }
                 swap1.swapWeights(swap2);
             }
-            // 5. giving a value to the dead neurons
+            // 5. giving new value to the weak neurons
             final Object[] newWeights = distantRecords.get(patron);
-            if (newWeights == null) {
-                System.out.println("Bad");
-            }
             patronized.setNewWeights(newWeights);
         }
     }

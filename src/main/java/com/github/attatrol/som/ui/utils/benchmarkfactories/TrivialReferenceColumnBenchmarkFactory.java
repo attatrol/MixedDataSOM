@@ -6,7 +6,7 @@ import com.github.attatrol.preprocessing.datasource.AbstractTokenDataSource;
 import com.github.attatrol.preprocessing.distance.DistanceFunction;
 import com.github.attatrol.preprocessing.ui.misc.GenericValueReturnDialog;
 import com.github.attatrol.som.benchmark.ClusteringBenchmark;
-import com.github.attatrol.som.benchmark.TrivialReferenceColumnBenchmark;
+import com.github.attatrol.som.benchmark.PurityColumnBenchmark;
 import com.github.attatrol.som.som.SomClusterResult;
 import com.github.attatrol.som.ui.ResultPane;
 import com.github.attatrol.som.ui.i18n.SomI18nProvider;
@@ -21,7 +21,7 @@ public class TrivialReferenceColumnBenchmarkFactory implements BenchmarkUiFactor
             DistanceFunction distanceFunction) {
             Optional<Integer> columnIndex = (new ColumnChoosingDialog(columnNames, tokenDataSource.getRecordLength())).showAndWait();
             if (columnIndex.isPresent()) {
-                return new TrivialReferenceColumnBenchmark(clusterResult, distanceFunction, tokenDataSource, columnIndex.get());
+                return new PurityColumnBenchmark(clusterResult, distanceFunction, tokenDataSource, columnIndex.get());
             }
             else {
                 return null;

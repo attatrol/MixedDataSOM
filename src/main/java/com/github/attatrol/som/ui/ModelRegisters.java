@@ -23,7 +23,6 @@ import com.github.attatrol.som.som.topology.RectangleTopology;
 import com.github.attatrol.som.som.topology.RectangleTopologyFactory;
 import com.github.attatrol.som.som.topology.ToroidalTopology;
 import com.github.attatrol.som.ui.utils.benchmarkfactories.BenchmarkUiFactory;
-import com.github.attatrol.som.ui.utils.benchmarkfactories.CalinskiHarabaszIndexFactory;
 import com.github.attatrol.som.ui.utils.benchmarkfactories.TrivialReferenceColumnBenchmarkFactory;
 
 /**
@@ -80,7 +79,6 @@ final class ModelRegisters {
     public static final List<BenchmarkUiFactory> BENCHMARK_FACTORIES;
     static {
         List<BenchmarkUiFactory> set = new ArrayList<>();
-        set.add(new CalinskiHarabaszIndexFactory());
         set.add(new TrivialReferenceColumnBenchmarkFactory());
         BENCHMARK_FACTORIES = Collections.unmodifiableList(set);
     }

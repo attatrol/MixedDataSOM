@@ -15,13 +15,13 @@ import com.github.attatrol.som.som.SomClusterResult;
  * @author atta_troll
  *
  */
-public class TrivialReferenceColumnBenchmark implements ClusteringBenchmark {
+public class PurityColumnBenchmark implements ClusteringBenchmark {
 
     private double partitionIndex;
 
     private boolean hasFailed;
 
-    public TrivialReferenceColumnBenchmark(SomClusterResult clusterResult, DistanceFunction distanceFunction,
+    public PurityColumnBenchmark(SomClusterResult clusterResult, DistanceFunction distanceFunction,
             AbstractTokenDataSource<?> tokenDataSource, int refColumnIndex) {
         final int clusterNumber = clusterResult.getClusterNumber();
         try {

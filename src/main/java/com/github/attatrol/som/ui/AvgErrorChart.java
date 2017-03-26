@@ -43,7 +43,7 @@ class AvgErrorChart extends LineChart<Number, Number> {
         NumberAxis yAxis = (NumberAxis) getYAxis();
         yAxis.setLabel(SomI18nProvider.INSTANCE.getValue("main.chart.yaxis.label"));
         yAxis.setForceZeroInRange(false);
-        this.setTitle(SomI18nProvider.INSTANCE.getValue("main.chart.label"));
+        setTitle(SomI18nProvider.INSTANCE.getValue("main.chart.label"));
     }
 
     /**
@@ -78,6 +78,11 @@ class AvgErrorChart extends LineChart<Number, Number> {
     public static class ChartFiller {
 
         /**
+         * Associated chart.
+         */
+        private final AvgErrorChart chart;
+
+        /**
          * Number of epochs in one tick.
          */
         private final int epochsInTick;
@@ -108,6 +113,7 @@ class AvgErrorChart extends LineChart<Number, Number> {
          * @param chart average error chart
          */
         public ChartFiller(AvgErrorChart chart) {
+            this.chart = chart;
             this.epochsInTick = chart.getEpochStep();
             Platform.runLater(() -> chart.getData().add(currentSeries));
         }
@@ -131,10 +137,13 @@ class AvgErrorChart extends LineChart<Number, Number> {
          */
         public void dumpResidualToChart() {
             if (cycleCounter != 0) {
-                sum /= cycleCounter;
+                final double avgSum = sum / cycleCounter;
                 final XYChart.Data<Number, Number> point = new XYChart.Data<>(xCounter,
-                        sum);
-                Platform.runLater(() -> currentSeries.getData().add(point));
+                        avgSum);
+                Platform.runLater(() -> {currentSeries.getData().add(point);
+                    chart.setTitle(String.format(SomI18nProvider.INSTANCE
+                        .getValue("main.chart.label.inprocess"), avgSum));
+                });
                 xCounter += cycleCounter;
                 cycleCounter = 0;
                 sum = 0;
