@@ -69,7 +69,7 @@ public class SomClusterResult {
      * @return total number of clusters, including empty ones
      */
     public int getClusterNumber() {
-        return clusterMap.size();
+        return clusterToNeuronMap.size();
     }
 
     /**

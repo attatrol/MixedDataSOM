@@ -96,7 +96,7 @@ public class Som {
         for (AbstractNeuron neuron : neurons) {
             winCount.put(neuron, 0L);
         }
-        System.out.println(String.format("Epoch %d", epochNumber));
+        //System.out.println(String.format("Epoch %d", epochNumber));
         double errorSum = 0.;
         long counter = 0L;
         dataSource.reset();
@@ -109,7 +109,7 @@ public class Som {
         }
         
         final double avgError = errorSum / counter;
-        System.out.println(String.format("Avg. error: %f, counter: %d", avgError, counter));
+        //System.out.println(String.format("Avg. error: %f, counter: %d", avgError, counter));
         return avgError;
     }
 
@@ -166,8 +166,8 @@ public class Som {
                 patrons.put(winCount, entry.getKey());
             }
         }
-        System.out.println(String.format("Weak count: %d Strong count %d",
-                weakNeurons.size(), patrons.size()));
+        //System.out.println(String.format("Weak count: %d Strong count %d",
+                //weakNeurons.size(), patrons.size()));
         // 2. pairing patrons to the closest weak neurons
         List<AbstractNeuron> patronList = new ArrayList<>();
         List<AbstractNeuron> patronedList = new ArrayList<>();
