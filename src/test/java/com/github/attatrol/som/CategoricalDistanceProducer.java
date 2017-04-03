@@ -1,7 +1,6 @@
 package com.github.attatrol.som;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import com.github.attatrol.preprocessing.datasource.AbstractTokenDataSource;
 import com.github.attatrol.preprocessing.datasource.TokenDataSourceUtils;
@@ -19,15 +18,12 @@ import com.github.attatrol.preprocessing.ui.TokenDataSourceAndMisc;
  */
 public class CategoricalDistanceProducer {
 
-    private TokenDataSourceAndMisc tdsm;
-
     private AbstractTokenDataSource<?> maskedDataSource;
 
     private int[] mask;
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public CategoricalDistanceProducer(TokenDataSourceAndMisc tdsm) {
-        this.tdsm = tdsm;
         mask = produceMask(tdsm);
         maskedDataSource = new TokenDataSourceUtils
                 .MaskedTokenDataSource(tdsm.getTokenDataSource(), mask);

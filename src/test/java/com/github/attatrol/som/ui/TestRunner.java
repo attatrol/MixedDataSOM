@@ -54,24 +54,24 @@ public class TestRunner {
 
     public static final SomInitializer DEFAULT_SOM_INITIALIZER = new RandomRecordsInitializer();
 
-    public static final int DEFAULT_NUMBER_OF_EPOCHS = 500;
+    public static final int DEFAULT_NUMBER_OF_EPOCHS = 450;
 
     public static final double DEFAULT_ALPHA = 0.;
 
-    public static final int REF_COLUMN_INDEX = 0;
+    public static final int REF_COLUMN_INDEX = 17;
 
     /**
      * Variables
      */
     public static final double BETA_START_VALUE = 1.;
 
-    public static final double BETA_END_VALUE = 3.;
+    public static final double BETA_END_VALUE = 6.;
 
-    public static final double BETA_STEP_VALUE = .1;
+    public static final double BETA_STEP_VALUE = .2;
 
-    public static final int MAP_INITIAL_SIZE = 5;
+    public static final int MAP_INITIAL_SIZE = 3;
 
-    public static final int MAP_FINAL_SIZE = 10;
+    public static final int MAP_FINAL_SIZE = 7;
 
     public static final int TEST_REPLAYS = 5;
 
@@ -94,13 +94,16 @@ public class TestRunner {
     public void run() throws IOException, NoSuchFieldException, SecurityException,
             IllegalArgumentException, IllegalAccessException {
         System.out.println("Tests begun");
+        try (FileWriter writer = new FileWriter(testPath.resolve("description.txt").toFile())) {
+            printOutDescription(writer);
+        }
         Map<Object, Color> refColumnColorMap = ColorUtils.getTokenColorsByFrequency(tdsm)[REF_COLUMN_INDEX];
         int uniqueTestIndex = 1;
         for (SimilarityIndexFactory<?> sif : DistanceRegisters.SIMILARITY_INDEX_FACTORY_REGISTER) {
            final String sifName = sif.getClass().getName();
            final Path sifTestPath = testPath.resolve(sifName);
            Files.createDirectory(sifTestPath);
-           try (FileWriter writer = new FileWriter(sifTestPath.resolve("results").toFile())) {
+           try (FileWriter writer = new FileWriter(sifTestPath.resolve("results.txt").toFile())) {
                writer.write(TestResult.getHeader());
                for (int width = MAP_INITIAL_SIZE; width <= MAP_FINAL_SIZE; width++) {
                    for (int height = width; height <= width + 1; height++) {
@@ -143,7 +146,7 @@ public class TestRunner {
                                        clusterResult, refColumnColorMap, somData.getTdsm().getTokenDataSource(),
                                        REF_COLUMN_INDEX);
                                RenderedImage image = ImageProducer.produceImage(colors, height, width);
-                               Path file = Files.createFile(sifTestPath.resolve(String.format("Test no.%d", uniqueTestIndex))) ;
+                               Path file = Files.createFile(sifTestPath.resolve(String.format("Test no.%d.png", uniqueTestIndex))) ;
                                ImageIO.write(image, "png", file.toFile());
                                // add visual quality
                                result.setVisualQuality(ImageProducer.getVisualQualityIndex(getTopology(somData.getSom()), colors, height, width));
@@ -157,6 +160,26 @@ public class TestRunner {
            }
         }
         System.out.println("Tests ended");
+    }
+
+    private void printOutDescription(FileWriter writer) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Parameters used in test.\n");
+        sb.append(String.format("Epoch number: %d\n", DEFAULT_NUMBER_OF_EPOCHS));
+        sb.append(String.format("Alpha: %f\n", DEFAULT_ALPHA));
+        sb.append(String.format("Reference column index: %d\n", REF_COLUMN_INDEX));
+        sb.append(String.format("Beta low bound: %f\n", BETA_START_VALUE));
+        sb.append(String.format("Beta high bound: %f\n", BETA_END_VALUE));
+        sb.append(String.format("Beta step: %f\n", BETA_STEP_VALUE));
+        sb.append(String.format("Map size low bound: %d\n", MAP_INITIAL_SIZE));
+        sb.append(String.format("Map size high bound: %d\n", MAP_FINAL_SIZE));
+        sb.append(String.format("Number of test reruns: %d\n", TEST_REPLAYS));
+        sb.append(String.format("Neuron Factory: %s\n", DEFAULT_NEURON_FACTORY.getClass().getName()));
+        sb.append(String.format("Learning function: %s\n", DEFAULT_LEARNING_FUNCTION_FACTORY.getClass().getName()));
+        sb.append(String.format("Neighborhood function: %s\n", DEFAULT_NEIGHBORHOOD_FUNCTION_FACTORY.getClass().getName()));
+        sb.append(String.format("Topology: %s\n", DEFAULT_TOPOLOGY_FACTORY.getClass().getName()));
+        sb.append(String.format("Way of picking initial values: %s\n", DEFAULT_SOM_INITIALIZER.getClass().getName()));
+        writer.append(sb.toString());
     }
 
     private static void checkSomComponents(SomComponents somData) throws IllegalArgumentException {
