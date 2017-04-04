@@ -13,11 +13,10 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-import com.github.attatrol.preprocessing.distance.DistanceRegisters;
+import com.github.attatrol.preprocessing.distance.DistanceFunction;
 import com.github.attatrol.preprocessing.distance.metric.EuclideanMetric;
-import com.github.attatrol.preprocessing.distance.nonmetric.similarity.SimilarityIndexFactory;
 import com.github.attatrol.preprocessing.ui.TokenDataSourceAndMisc;
-import com.github.attatrol.som.CategoricalDistanceProducer;
+import com.github.attatrol.som.DistanceProducer;
 import com.github.attatrol.som.TestResult;
 import com.github.attatrol.som.benchmark.PurityColumnBenchmark;
 import com.github.attatrol.som.som.Som;
@@ -54,11 +53,11 @@ public class TestRunner {
 
     public static final SomInitializer DEFAULT_SOM_INITIALIZER = new RandomRecordsInitializer();
 
-    public static final int DEFAULT_NUMBER_OF_EPOCHS = 450;
+    public static final int DEFAULT_NUMBER_OF_EPOCHS = 500;
 
     public static final double DEFAULT_ALPHA = 0.;
 
-    public static final int REF_COLUMN_INDEX = 17;
+    public static final int REF_COLUMN_INDEX = 4;
 
     /**
      * Variables
@@ -67,11 +66,11 @@ public class TestRunner {
 
     public static final double BETA_END_VALUE = 6.;
 
-    public static final double BETA_STEP_VALUE = .2;
+    public static final double BETA_STEP_VALUE = .1;
 
     public static final int MAP_INITIAL_SIZE = 3;
 
-    public static final int MAP_FINAL_SIZE = 7;
+    public static final int MAP_FINAL_SIZE = 6;
 
     public static final int TEST_REPLAYS = 5;
 
@@ -81,17 +80,14 @@ public class TestRunner {
 
     private TokenDataSourceAndMisc tdsm;
 
-    private CategoricalDistanceProducer distanceFactory;
-
-    public TestRunner(TokenDataSourceAndMisc tdsm, CategoricalDistanceProducer distanceFactory) throws IOException {
+    public TestRunner(TokenDataSourceAndMisc tdsm, DistanceProducer distanceFactory) throws IOException {
         testPath = ROOT_PATH.resolve(String.format("SOM_tests_%s",
                 new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime())));
         Files.createDirectories(testPath);
         this.tdsm = tdsm;
-        this.distanceFactory = distanceFactory;
     }
 
-    public void run() throws IOException, NoSuchFieldException, SecurityException,
+    public void run(Map<String, DistanceFunction> distances) throws IOException, NoSuchFieldException, SecurityException,
             IllegalArgumentException, IllegalAccessException {
         System.out.println("Tests begun");
         try (FileWriter writer = new FileWriter(testPath.resolve("description.txt").toFile())) {
@@ -99,59 +95,19 @@ public class TestRunner {
         }
         Map<Object, Color> refColumnColorMap = ColorUtils.getTokenColorsByFrequency(tdsm)[REF_COLUMN_INDEX];
         int uniqueTestIndex = 1;
-        for (SimilarityIndexFactory<?> sif : DistanceRegisters.SIMILARITY_INDEX_FACTORY_REGISTER) {
-           final String sifName = sif.getClass().getName();
+        for (Map.Entry<String, DistanceFunction> entry : distances.entrySet()) {
+           final String sifName = entry.getKey();
            final Path sifTestPath = testPath.resolve(sifName);
            Files.createDirectory(sifTestPath);
            try (FileWriter writer = new FileWriter(sifTestPath.resolve("results.txt").toFile())) {
                writer.write(TestResult.getHeader());
                for (int width = MAP_INITIAL_SIZE; width <= MAP_FINAL_SIZE; width++) {
-                   for (int height = width; height <= width + 1; height++) {
+                   for (int height = width; height <= width; height++) {
                        for (double beta = BETA_START_VALUE; beta <= BETA_END_VALUE; beta += BETA_STEP_VALUE) {
                            for (int z = 0; z < TEST_REPLAYS; z++) {
                                System.out.println(String.format("Test no. %d", uniqueTestIndex));
-                               final SomComponents somData = new SomComponents();
-                               somData.setDistanceFunction(distanceFactory.produceDistanceFunction(sif));
-                               somData.setFuzzyNeuronFactory(DEFAULT_NEURON_FACTORY);
-                               somData.setLearningFunctionFactory(DEFAULT_LEARNING_FUNCTION_FACTORY);
-                               somData.setNeighborhoodFunctionFactory(DEFAULT_NEIGHBORHOOD_FUNCTION_FACTORY);
-                               somData.setNumberOfEpochs(DEFAULT_NUMBER_OF_EPOCHS);
-                               somData.setOverMedianStrongFactor(beta);
-                               somData.setOverMedianWeakFactor(DEFAULT_ALPHA);
-                               somData.setRectangleHeight(height);
-                               somData.setRectangleWidth(width);
-                               somData.setTdsm(tdsm);
-                               somData.setTopologyFactory(DEFAULT_TOPOLOGY_FACTORY);
-                               somData.setSomInitializer(DEFAULT_SOM_INITIALIZER);
-                               somData.registerLastCreatedSomParameters(); // som parameters set
-                               somData.setSom(produceSom(somData)); // som created
-                               System.out.println("SOM ready");
-                               TestResult result = new TestResult(uniqueTestIndex, height, width, beta, sifName);
-                               learnSom(somData, result); // som learned
-                               final SomClusterResult clusterResult = SomClusterResult.produceClusterResult(
-                                       somData.getSom(),
-                                       tdsm.getTokenDataSource());
-                               // dead neurons
-                               result.setDeadNeuronsCount(countDeadNeurons(clusterResult));
-                               // add purity
-                               PurityColumnBenchmark purityBenchmark = new PurityColumnBenchmark(clusterResult,
-                                       somData.getDistanceFunction(), somData.getTdsm().getTokenDataSource(),
-                                       REF_COLUMN_INDEX);
-                               if (purityBenchmark.hasFailed()) {
-                                   throw new IllegalStateException("Purity failed");
-                               }
-                               result.setPurity(purityBenchmark.getValue());
-                               // add buffered image
-                               Map<Point, Color> colors = ImageProducer.getColorScheme(somData.getSom().getNeurons(),
-                                       clusterResult, refColumnColorMap, somData.getTdsm().getTokenDataSource(),
-                                       REF_COLUMN_INDEX);
-                               RenderedImage image = ImageProducer.produceImage(colors, height, width);
-                               Path file = Files.createFile(sifTestPath.resolve(String.format("Test no.%d.png", uniqueTestIndex))) ;
-                               ImageIO.write(image, "png", file.toFile());
-                               // add visual quality
-                               result.setVisualQuality(ImageProducer.getVisualQualityIndex(getTopology(somData.getSom()), colors, height, width));
-                               writer.write(result.toString());
-                               writer.flush();
+                               performTest(beta, height, width, entry.getValue(), uniqueTestIndex, sifName,
+                                       refColumnColorMap, writer, sifTestPath);
                                uniqueTestIndex++;
                            }
                        }
@@ -180,6 +136,54 @@ public class TestRunner {
         sb.append(String.format("Topology: %s\n", DEFAULT_TOPOLOGY_FACTORY.getClass().getName()));
         sb.append(String.format("Way of picking initial values: %s\n", DEFAULT_SOM_INITIALIZER.getClass().getName()));
         writer.append(sb.toString());
+    }
+
+    private void performTest(double beta, int height, int width, DistanceFunction distanceFunction,
+            int uniqueTestIndex, String sifName, Map<Object, Color> refColumnColorMap,
+            FileWriter writer, Path sifTestPath)
+                    throws IllegalStateException, IOException, NoSuchFieldException,
+                    SecurityException, IllegalArgumentException, IllegalAccessException {
+        final SomComponents somData = new SomComponents();
+        somData.setDistanceFunction(distanceFunction);
+        somData.setFuzzyNeuronFactory(DEFAULT_NEURON_FACTORY);
+        somData.setLearningFunctionFactory(DEFAULT_LEARNING_FUNCTION_FACTORY);
+        somData.setNeighborhoodFunctionFactory(DEFAULT_NEIGHBORHOOD_FUNCTION_FACTORY);
+        somData.setNumberOfEpochs(DEFAULT_NUMBER_OF_EPOCHS);
+        somData.setOverMedianStrongFactor(beta);
+        somData.setOverMedianWeakFactor(DEFAULT_ALPHA);
+        somData.setRectangleHeight(height);
+        somData.setRectangleWidth(width);
+        somData.setTdsm(tdsm);
+        somData.setTopologyFactory(DEFAULT_TOPOLOGY_FACTORY);
+        somData.setSomInitializer(DEFAULT_SOM_INITIALIZER);
+        somData.registerLastCreatedSomParameters(); // som parameters set
+        somData.setSom(produceSom(somData)); // som created
+        TestResult result = new TestResult(uniqueTestIndex, height, width, beta, sifName);
+        learnSom(somData, result); // som learned
+        final SomClusterResult clusterResult = SomClusterResult.produceClusterResult(
+                somData.getSom(),
+                tdsm.getTokenDataSource());
+        // dead neurons
+        result.setDeadNeuronsCount(countDeadNeurons(clusterResult));
+        // add purity
+        PurityColumnBenchmark purityBenchmark = new PurityColumnBenchmark(clusterResult,
+                somData.getDistanceFunction(), somData.getTdsm().getTokenDataSource(),
+                REF_COLUMN_INDEX);
+        if (purityBenchmark.hasFailed()) {
+            throw new IllegalStateException("Purity failed");
+        }
+        result.setPurity(purityBenchmark.getValue());
+        // add buffered image
+        Map<Point, Color> colors = ImageProducer.getColorScheme(somData.getSom().getNeurons(),
+                clusterResult, refColumnColorMap, somData.getTdsm().getTokenDataSource(),
+                REF_COLUMN_INDEX);
+        RenderedImage image = ImageProducer.produceImage(colors, height, width);
+        Path file = Files.createFile(sifTestPath.resolve(String.format("Test no.%d.png", uniqueTestIndex))) ;
+        ImageIO.write(image, "png", file.toFile());
+        // add visual quality
+        result.setVisualQuality(ImageProducer.getVisualQualityIndex(getTopology(somData.getSom()), colors, height, width));
+        writer.write(result.toString());
+        writer.flush();
     }
 
     private static void checkSomComponents(SomComponents somData) throws IllegalArgumentException {
